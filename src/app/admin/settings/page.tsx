@@ -197,7 +197,7 @@ export default function SettingsPage() {
                   type="text"
                   value={googleNewsUrl}
                   onChange={(e) => setGoogleNewsUrl(e.target.value)}
-                  placeholder="https://news.google.com/publications/..."
+                  placeholder="https://www.google.com/preferences/source?q=newswavejharkhand.com"
                   className="bg-transparent text-base text-right border-none shadow-none focus-visible:ring-0 w-full"
                 />
               </div>
