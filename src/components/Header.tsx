@@ -350,7 +350,7 @@ export default function Header({
           </div>
 
           {/* Main Brand Logo */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 pr-2 lg:pr-4">
             <a
               href="/"
               onClick={(e) => {
@@ -363,31 +363,25 @@ export default function Header({
               <img
                 src={BRAND.logoWebp}
                 alt={BRAND.name}
-                className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-102"
+                className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-102 shrink-0"
               />
-              <div className="hidden sm:flex flex-col">
+              <div className="hidden sm:flex flex-col shrink-0">
                 <span className="font-serif font-black text-lg xl:text-xl tracking-tight text-slate-950 leading-tight group-hover:text-[#E63946] transition-colors whitespace-nowrap">
                   JHARKHAND EXPRESS
                 </span>
-                <div className="flex items-center gap-1.5 text-[8.5px] font-sans font-bold tracking-widest text-[#0D5C46] uppercase -mt-0.5">
-                  <span>The Voice of East India</span>
-                  {time && (
-                    <>
-                      <span className="text-slate-300 font-normal hidden 2xl:inline">•</span>
-                      <span className="text-slate-500 font-mono font-medium tracking-normal normal-case hidden 2xl:inline">{time}</span>
-                    </>
-                  )}
-                </div>
+                <span className="text-[9px] font-sans font-bold tracking-widest text-[#0D5C46] uppercase">
+                  The Voice of East India
+                </span>
               </div>
             </a>
           </div>
 
           {/* Desktop Integrated Categories Navigation Bar */}
-          <nav className="hidden lg:flex items-center space-x-1 overflow-x-auto no-scrollbar py-0.5 min-w-0 justify-center flex-1 px-2">
+          <nav className="hidden lg:flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 flex-1 min-w-0 justify-start 2xl:justify-center px-2">
             {/* Top Stories Pill */}
             <button
               onClick={() => onCategoryClick?.(null)}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase transition-all shrink-0 ${
+              className={`px-3 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase transition-all shrink-0 whitespace-nowrap ${
                 !activeCategory
                   ? 'bg-slate-900 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100'
