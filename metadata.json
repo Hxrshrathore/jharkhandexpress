@@ -1,0 +1,6 @@
+{
+  "name": "Truth24x7",
+  "description": "Next-generation premium news platform with modern editorial brutalist design, real-time updates, and AI-powered summaries.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,242 @@
+[
+  {
+    "id": 72,
+    "type": "rectangle",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/0a63713a-1b79-40d2-85f3-de43058dd770-Frame23.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:06.629Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 73,
+    "type": "rectangle",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/d532599d-1bd1-4dc1-b252-b70689e11dc7-Frame24.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:06.706Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 74,
+    "type": "rectangle",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/c5db884b-4835-43da-ab91-60d89d62be19-Frame25.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:06.791Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 51,
+    "type": "leaderboard",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/91384d8a-104f-4ac6-bba0-91e189d4992b-Frame1.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:04.481Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 52,
+    "type": "leaderboard",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/a68d9b66-ef2b-45cb-9bb5-3fd1ad7632ee-Frame2.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:04.564Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 53,
+    "type": "leaderboard",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/cf0dd250-3f0b-4ec4-9ee2-dbddf56d4e36-Frame3.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:04.759Z",
+    "campaign_id": 4,
+    "show_in_articles": false,
+    "show_on_homepage": true
+  },
+  {
+    "id": 64,
+    "type": "rectangle",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/458bca80-8602-44a7-82cf-51b6aaa0a17a-Frame14.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:05.966Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 59,
+    "type": "leaderboard",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/b0576651-9c85-4ad0-9d09-f6443e5bcb1f-Frame9.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:05.538Z",
+    "campaign_id": 4,
+    "show_in_articles": false,
+    "show_on_homepage": true
+  },
+  {
+    "id": 60,
+    "type": "leaderboard",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/59e3cd99-9093-48d2-9a46-a5cca912a05f-Frame10.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:05.622Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 61,
+    "type": "leaderboard",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/3cdb9cb3-d599-4ce3-856a-df077121a7e9-Frame12.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:05.700Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 62,
+    "type": "leaderboard",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/20f78c7e-0506-456f-893f-22ef59fdaaaa-Frame13.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:05.800Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 65,
+    "type": "rectangle",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/1d276ada-05bc-4490-ba19-cc26304d51c0-Frame15.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:06.040Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 66,
+    "type": "rectangle",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/d15896fd-8fb2-460e-b91d-52b3b3498d83-Frame16.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:06.140Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 67,
+    "type": "rectangle",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/1cf639c7-7b88-4b08-836f-797a688180cc-Frame17.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:06.228Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 68,
+    "type": "rectangle",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/c655bcea-68ce-444b-9d6e-2a22c4bd7272-Frame18.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:06.329Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 69,
+    "type": "rectangle",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/53083c04-18f8-47b0-9297-c4d129ee2f66-Frame19.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:06.401Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 70,
+    "type": "rectangle",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/ef731f9c-5af0-4f30-80f0-184e3fc320f5-Frame20.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:06.479Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 54,
+    "type": "leaderboard",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/de37ebe5-e537-4dc4-9f56-6a73762ef562-Frame4.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:04.837Z",
+    "campaign_id": 4,
+    "show_in_articles": false,
+    "show_on_homepage": true
+  },
+  {
+    "id": 55,
+    "type": "leaderboard",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/3e873637-0906-4c58-a944-1527521332f3-Frame5.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:04.998Z",
+    "campaign_id": 4,
+    "show_in_articles": false,
+    "show_on_homepage": true
+  },
+  {
+    "id": 56,
+    "type": "leaderboard",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/5cbad7d9-f676-437b-92be-855fa45b3344-Frame6.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:05.182Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 57,
+    "type": "leaderboard",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/a55f50dd-3e4a-4a8f-b251-23712f41d552-Frame7.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:05.371Z",
+    "campaign_id": 4,
+    "show_in_articles": false,
+    "show_on_homepage": true
+  },
+  {
+    "id": 58,
+    "type": "leaderboard",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/fcabf4e6-39f0-4309-8021-cc098ea035ed-Frame8.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:05.466Z",
+    "campaign_id": 4,
+    "show_in_articles": false,
+    "show_on_homepage": true
+  },
+  {
+    "id": 71,
+    "type": "rectangle",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/43c6e62c-f4fe-42c2-a305-18108e53b31d-Frame22.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:06.551Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  },
+  {
+    "id": 63,
+    "type": "rectangle",
+    "image_url": "https://pub-e5cb06ad97aa4e5fa2a418ad7e97b1ad.r2.dev/ads/7d1cdf2f-5f57-4d73-813a-a712410cf020-Frame11.png",
+    "active": true,
+    "created_at": "2026-09-09T15:33:05.873Z",
+    "campaign_id": 4,
+    "show_in_articles": true,
+    "show_on_homepage": true
+  }
+]

@@ -1,0 +1,123 @@
+name: Re-comit Clone
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: recommit-clone-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  recommit:
+    if: |
+      github.actor != 'github-actions[bot]' &&
+      github.event.head_commit.message != 'Re-comit Clone'
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout pushed commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Detect repository owner
+        id: repo
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          OWNER=$(gh repo view "${{ github.repository }}" --json owner --jq '.owner.login')
+
+          echo "Repository owner: $OWNER"
+          echo "owner=$OWNER" >> "$GITHUB_OUTPUT"
+
+      - name: Detect pusher
+        id: pusher
+        run: |
+          PUSHER="${{ github.actor }}"
+          OWNER="${{ steps.repo.outputs.owner }}"
+
+          echo "Pusher: $PUSHER"
+          echo "Owner: $OWNER"
+
+          if [ "$PUSHER" = "$OWNER" ]; then
+            echo "is_collaborator=false" >> "$GITHUB_OUTPUT"
+            echo "Owner push detected. Ignoring."
+          elif [ "$PUSHER" = "github-actions[bot]" ]; then
+            echo "is_collaborator=false" >> "$GITHUB_OUTPUT"
+            echo "GitHub Actions push detected. Ignoring."
+          else
+            echo "is_collaborator=true" >> "$GITHUB_OUTPUT"
+            echo "Collaborator push detected."
+          fi
+
+      - name: Create temporary branch
+        if: steps.pusher.outputs.is_collaborator == 'true'
+        id: branch
+        run: |
+          BRANCH="recommit-${GITHUB_SHA}"
+
+          echo "BRANCH=$BRANCH" >> "$GITHUB_ENV"
+
+          git checkout -b "$BRANCH"
+
+          echo "Created branch: $BRANCH"
+
+      - name: Create Re-comit Clone commit
+        if: steps.pusher.outputs.is_collaborator == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git commit --allow-empty -m "Re-comit Clone"
+
+          echo "Created empty Re-comit Clone commit."
+
+      - name: Push temporary branch
+        if: steps.pusher.outputs.is_collaborator == 'true'
+        run: |
+          git push origin "$BRANCH"
+
+      - name: Create Pull Request
+        if: steps.pusher.outputs.is_collaborator == 'true'
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL=$(gh pr create \
+            --repo "${{ github.repository }}" \
+            --base main \
+            --head "$BRANCH" \
+            --title "Re-comit Clone" \
+            --body "Automated Re-comit Clone for collaborator push ${{ github.sha }} by ${{ github.actor }}.")
+
+          echo "PR_URL=$PR_URL" >> "$GITHUB_ENV"
+
+          echo "Created PR: $PR_URL"
+
+      - name: Merge Pull Request
+        if: steps.pusher.outputs.is_collaborator == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge "$PR_URL" \
+            --repo "${{ github.repository }}" \
+            --merge \
+            --delete-branch
+
+      - name: Report failure
+        if: failure()
+        run: |
+          echo "Re-comit Clone failed."
+          echo "Repository: ${{ github.repository }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Pusher: ${{ github.actor }}"

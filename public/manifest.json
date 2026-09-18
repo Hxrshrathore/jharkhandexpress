@@ -1,0 +1,27 @@
+{
+  "name": "Jharkhand Express",
+  "short_name": "JE News",
+  "description": "Jharkhand's Voice First — News in English with multilingual support",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#D31010",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["news"],
+  "lang": "en-IN",
+  "screenshots": []
+}

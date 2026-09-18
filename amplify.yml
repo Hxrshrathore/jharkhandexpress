@@ -1,0 +1,68 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm ci --legacy-peer-deps
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*
+
+# Custom HTTP headers applied at the CloudFront/CDN level.
+# This is the ONLY reliable way to prevent Amplify from caching SSR pages.
+# Next.js's force-dynamic / Cache-Control headers alone are insufficient
+# because Amplify's CloudFront can override them.
+customHeaders:
+  # Never cache the homepage - always fetch fresh from Lambda
+  - pattern: /
+    headers:
+      - key: Cache-Control
+        value: no-store, no-cache, must-revalidate, proxy-revalidate
+      - key: Pragma
+        value: no-cache
+      - key: Expires
+        value: '0'
+      - key: Surrogate-Control
+        value: no-store
+
+  # Never cache individual article pages
+  - pattern: /article/**
+    headers:
+      - key: Cache-Control
+        value: no-store, no-cache, must-revalidate, proxy-revalidate
+      - key: Pragma
+        value: no-cache
+      - key: Expires
+        value: '0'
+      - key: Surrogate-Control
+        value: no-store
+
+  # Never cache API routes (settings, tags, etc)
+  - pattern: /api/**
+    headers:
+      - key: Cache-Control
+        value: no-store, no-cache, must-revalidate, proxy-revalidate
+      - key: Pragma
+        value: no-cache
+      - key: Expires
+        value: '0'
+
+  # Static assets (_next/static) CAN be cached long-term - they are content-hashed
+  - pattern: /_next/static/**
+    headers:
+      - key: Cache-Control
+        value: public, max-age=31536000, immutable
+
+  # Public folder assets - moderate cache
+  - pattern: /Truth24x7logo.png
+    headers:
+      - key: Cache-Control
+        value: public, max-age=86400, stale-while-revalidate=3600

@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "analytics-mcp": {
+      "command": "pipx",
+      "args": ["run", "analytics-mcp"],
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "./analytics-credentials.json",
+        "GOOGLE_PROJECT_ID": "trurth24x7",
+        "GA_PROPERTY_ID": "535751801",
+        "GA_ACCOUNT_ID": "393456794"
+      }
+    }
+  }
+}
