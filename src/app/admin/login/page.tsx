@@ -42,12 +42,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-slate-900 flex flex-col justify-between items-center p-6 font-sans">
+    <div className="min-h-screen bg-white text-slate-900 flex flex-col justify-between items-center p-6 font-sans selection:bg-[#0D5C46] selection:text-white">
       {/* Top Header with Back Link */}
       <header className="w-full max-w-sm flex items-center justify-start pt-4">
         <Link 
           href="/" 
-          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 transition-colors bg-slate-50 hover:bg-slate-100 border border-slate-200/80 px-3 py-1.5 rounded-full"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to site</span>
@@ -56,7 +56,7 @@ export default function LoginPage() {
 
       {/* Main Login Card */}
       <main className="w-full max-w-sm my-auto">
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-8 shadow-xs relative overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-2xl p-8 sm:p-9 shadow-[0_10px_35px_-5px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)] relative overflow-hidden">
           {/* Brand Accent Top Gradient Bar */}
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#0D5C46] via-[#2A9D8F] to-[#E63946]" />
 
