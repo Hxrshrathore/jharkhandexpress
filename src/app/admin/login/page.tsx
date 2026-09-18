@@ -56,9 +56,12 @@ export default function LoginPage() {
 
       {/* Main Login Card */}
       <main className="w-full max-w-sm my-auto">
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-8 shadow-xs">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-8 shadow-xs relative overflow-hidden">
+          {/* Brand Accent Top Gradient Bar */}
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#0D5C46] via-[#2A9D8F] to-[#E63946]" />
+
           {/* Brand Logo & Editorial Title */}
-          <div className="flex flex-col items-center text-center mb-8">
+          <div className="flex flex-col items-center text-center mb-8 pt-1">
             <Link href="/" className="mb-4 inline-block">
               <Image
                 src="/logo.webp"
