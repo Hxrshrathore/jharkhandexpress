@@ -53,6 +53,7 @@ export async function POST(request: Request) {
       maintenance_reason,
       force_ad_campaign_id,
       whatsapp_url,
+      google_news_url,
       breaking_news_expiry_hours
     } = body;
 
@@ -62,11 +63,11 @@ export async function POST(request: Request) {
       await sql`
         INSERT INTO site_settings (
           visibility_cutoff_date, simulated_date, ad1_url, ad2_url, 
-          maintenance_mode, maintenance_auto_deactivate, maintenance_end_time, maintenance_reason, force_ad_campaign_id, whatsapp_url, breaking_news_expiry_hours, updated_at
+          maintenance_mode, maintenance_auto_deactivate, maintenance_end_time, maintenance_reason, force_ad_campaign_id, whatsapp_url, google_news_url, breaking_news_expiry_hours, updated_at
         ) 
         VALUES (
           ${visibility_cutoff_date || null}, ${simulated_date || null}, ${ad1_url || null}, ${ad2_url || null}, 
-          ${maintenance_mode || false}, ${maintenance_auto_deactivate || false}, ${maintenance_end_time || null}, ${maintenance_reason || 'maintenance'}, ${force_ad_campaign_id || null}, ${whatsapp_url || null}, ${breaking_news_expiry_hours !== undefined ? breaking_news_expiry_hours : 36}, CURRENT_TIMESTAMP
+          ${maintenance_mode || false}, ${maintenance_auto_deactivate || false}, ${maintenance_end_time || null}, ${maintenance_reason || 'maintenance'}, ${force_ad_campaign_id || null}, ${whatsapp_url || null}, ${google_news_url || null}, ${breaking_news_expiry_hours !== undefined ? breaking_news_expiry_hours : 36}, CURRENT_TIMESTAMP
         )
       `;
     } else {
@@ -82,6 +83,7 @@ export async function POST(request: Request) {
           maintenance_reason = ${maintenance_reason !== undefined ? maintenance_reason : 'maintenance'},
           force_ad_campaign_id = ${force_ad_campaign_id !== undefined ? force_ad_campaign_id : null},
           whatsapp_url = ${whatsapp_url !== undefined ? whatsapp_url : null},
+          google_news_url = ${google_news_url !== undefined ? google_news_url : null},
           breaking_news_expiry_hours = ${breaking_news_expiry_hours !== undefined ? breaking_news_expiry_hours : 36},
           updated_at = CURRENT_TIMESTAMP
       `;

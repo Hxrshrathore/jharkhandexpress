@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShieldCheck, MessageCircle, Clock, Power, RefreshCw, X, ChevronRight, Activity, Database, Cloud, Key, Settings } from 'lucide-react';
+import { ShieldCheck, MessageCircle, Clock, Power, RefreshCw, X, ChevronRight, Activity, Database, Cloud, Key, Settings, Globe } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ export default function SettingsPage() {
   
   // Settings State
   const [whatsappUrl, setWhatsappUrl] = useState('');
+  const [googleNewsUrl, setGoogleNewsUrl] = useState('');
   const [breakingNewsExpiry, setBreakingNewsExpiry] = useState<number>(36);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   
@@ -29,6 +30,7 @@ export default function SettingsPage() {
       .then(data => {
         if (data.maintenance_mode !== undefined) setMaintenanceMode(data.maintenance_mode);
         if (data.whatsapp_url !== undefined) setWhatsappUrl(data.whatsapp_url);
+        if (data.google_news_url !== undefined) setGoogleNewsUrl(data.google_news_url || '');
         if (data.breaking_news_expiry_hours !== undefined) setBreakingNewsExpiry(data.breaking_news_expiry_hours);
         if (data.maintenance_auto_deactivate !== undefined) setAutoDeactivate(data.maintenance_auto_deactivate);
         if (data.maintenance_end_time) {
@@ -49,6 +51,7 @@ export default function SettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           whatsapp_url: whatsappUrl,
+          google_news_url: googleNewsUrl,
           breaking_news_expiry_hours: Number(breakingNewsExpiry)
         })
       });
@@ -174,6 +177,27 @@ export default function SettingsPage() {
                   value={whatsappUrl}
                   onChange={(e) => setWhatsappUrl(e.target.value)}
                   placeholder="https://whatsapp.com/..."
+                  className="bg-transparent text-base text-right border-none shadow-none focus-visible:ring-0 w-full"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-card border-t border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center shrink-0">
+                  <Globe className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <span className="text-base font-medium block">Google News Preferred Source</span>
+                  <span className="text-xs text-muted-foreground">Publication Follow URL / Search Link</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground w-1/2">
+                <Input 
+                  type="text"
+                  value={googleNewsUrl}
+                  onChange={(e) => setGoogleNewsUrl(e.target.value)}
+                  placeholder="https://news.google.com/publications/..."
                   className="bg-transparent text-base text-right border-none shadow-none focus-visible:ring-0 w-full"
                 />
               </div>
