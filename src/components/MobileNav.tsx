@@ -193,7 +193,9 @@ export default function MobileNav({
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 font-medium'
               }`}
             >
-              <Home className="w-5 h-5 mb-0.5" strokeWidth={isHomeActive ? 2.5 : 2} />
+              <div className="relative flex items-center justify-center w-6 h-6 mb-0.5">
+                <Home className="w-5 h-5" strokeWidth={isHomeActive ? 2.5 : 2} />
+              </div>
               <span className="text-[10px] tracking-tight font-sans">Home</span>
               {isHomeActive && (
                 <span className="absolute bottom-0.5 w-1 h-1 rounded-full bg-[#0D5C46] dark:bg-emerald-400" />
@@ -205,10 +207,12 @@ export default function MobileNav({
               onClick={onLiveClick}
               className="relative flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-xl transition-all duration-150 active:scale-95 text-slate-500 dark:text-slate-400 hover:text-[#0D5C46] font-medium"
             >
-              <div className="relative mb-0.5">
+              <div className="relative flex items-center justify-center w-6 h-6 mb-0.5">
                 <Radio className="w-5 h-5 text-[#0D5C46] dark:text-emerald-400" strokeWidth={2.2} />
-                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="absolute top-0 right-0 flex h-2 w-2 pointer-events-none">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
+                </span>
               </div>
               <span className="text-[10px] tracking-tight font-sans text-[#0D5C46] dark:text-emerald-400 font-bold">
                 Live Wire
@@ -220,7 +224,9 @@ export default function MobileNav({
               onClick={onSearchClick}
               className="relative flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-xl transition-all duration-150 active:scale-95 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 font-medium"
             >
-              <Search className="w-5 h-5 mb-0.5" strokeWidth={2} />
+              <div className="relative flex items-center justify-center w-6 h-6 mb-0.5">
+                <Search className="w-5 h-5" strokeWidth={2} />
+              </div>
               <span className="text-[10px] tracking-tight font-sans">Search</span>
             </button>
 
@@ -233,10 +239,10 @@ export default function MobileNav({
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 font-medium'
               }`}
             >
-              <div className="relative mb-0.5">
+              <div className="relative flex items-center justify-center w-6 h-6 mb-0.5">
                 <Bookmark className="w-5 h-5" strokeWidth={isSavedActive ? 2.5 : 2} />
                 {savedCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2 px-1.5 min-w-4 h-4 rounded-full bg-[#E63946] text-white text-[9px] font-bold flex items-center justify-center shadow-xs">
+                  <span className="absolute -top-1 -right-1 px-1 min-w-3.5 h-3.5 rounded-full bg-[#E63946] text-white text-[8px] font-bold flex items-center justify-center shadow-xs ring-2 ring-white dark:ring-slate-900">
                     {savedCount}
                   </span>
                 )}
@@ -256,10 +262,10 @@ export default function MobileNav({
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 font-medium'
               }`}
             >
-              <div className="relative mb-0.5">
+              <div className="relative flex items-center justify-center w-6 h-6 mb-0.5">
                 <Compass className={`w-5 h-5 transition-transform duration-200 ${isExploreOpen ? 'rotate-45 text-[#0D5C46]' : ''}`} strokeWidth={2} />
                 {activeCategory && !isExploreOpen && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#E63946]" />
+                  <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-[#E63946] ring-2 ring-white dark:ring-slate-900" />
                 )}
               </div>
               <span className="text-[10px] tracking-tight font-sans truncate max-w-[48px]">
