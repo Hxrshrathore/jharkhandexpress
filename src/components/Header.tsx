@@ -183,14 +183,14 @@ export default function Header({
   return (
     <>
       {/* Spacer to prevent page jump when header becomes fixed */}
-      {isScrolledPastTop && (
+      {!readingArticle && isScrolledPastTop && (
         <div style={{ height: headerHeight ? `${headerHeight}px` : '120px' }} aria-hidden="true" />
       )}
 
       <header
         ref={headerRef}
         className={`w-full z-100 bg-[#FAF9F6] border-b border-slate-200/80 transition-transform duration-300 ease-in-out ${
-          isScrolledPastTop
+          !readingArticle && isScrolledPastTop
             ? `fixed top-0 left-0 right-0 shadow-lg ${
                 isVisible ? 'translate-y-0' : '-translate-y-full pointer-events-none'
               }`
@@ -324,9 +324,9 @@ export default function Header({
         </div>
       </div>
 
-      {/* ── MAIN MASTHEAD BAR ── */}
-      <div className={`transition-all duration-200 ${isScrolled ? 'py-2 bg-white/95 backdrop-blur-md shadow-xs' : 'py-3 bg-[#FAF9F6]'}`}>
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-8 flex items-center justify-between">
+      {/* ── MAIN MASTHEAD BAR (INTEGRATED WITH CATEGORY NAVIGATION) ── */}
+      <div className={`transition-all duration-200 ${isScrolled ? 'py-2 bg-white/95 backdrop-blur-md shadow-xs' : 'py-2.5 bg-[#FAF9F6]'}`}>
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-8 flex items-center justify-between gap-4">
           
           {/* Mobile menu trigger / back button */}
           <div className="flex items-center gap-3 lg:hidden">
@@ -350,7 +350,7 @@ export default function Header({
           </div>
 
           {/* Main Brand Logo */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <a
               href="/"
               onClick={(e) => {
@@ -358,23 +358,23 @@ export default function Header({
                 onCategoryClick?.(null);
                 if (readingArticle) onBack?.();
               }}
-              className="group flex items-center gap-3 cursor-pointer py-0.5"
+              className="group flex items-center gap-2.5 cursor-pointer py-0.5"
             >
               <img
                 src={BRAND.logoWebp}
                 alt={BRAND.name}
-                className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-102"
+                className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-102"
               />
               <div className="hidden sm:flex flex-col">
-                <span className="font-serif font-black text-xl tracking-tight text-slate-950 leading-tight group-hover:text-[#E63946] transition-colors">
+                <span className="font-serif font-black text-lg xl:text-xl tracking-tight text-slate-950 leading-tight group-hover:text-[#E63946] transition-colors whitespace-nowrap">
                   JHARKHAND EXPRESS
                 </span>
-                <div className="flex items-center gap-2 text-[9px] font-sans font-bold tracking-widest text-[#0D5C46] uppercase -mt-0.5">
+                <div className="flex items-center gap-1.5 text-[8.5px] font-sans font-bold tracking-widest text-[#0D5C46] uppercase -mt-0.5">
                   <span>The Voice of East India</span>
                   {time && (
                     <>
-                      <span className="text-slate-300 font-normal">•</span>
-                      <span className="text-slate-500 font-mono font-medium tracking-normal normal-case">{time}</span>
+                      <span className="text-slate-300 font-normal hidden 2xl:inline">•</span>
+                      <span className="text-slate-500 font-mono font-medium tracking-normal normal-case hidden 2xl:inline">{time}</span>
                     </>
                   )}
                 </div>
@@ -382,29 +382,51 @@ export default function Header({
             </a>
           </div>
 
-          {/* Desktop Reading Mode Breadcrumb */}
-          {readingArticle && (
-            <div className="hidden lg:flex items-center gap-3 px-4 py-1.5 bg-slate-100/80 rounded-full border border-slate-200 max-w-md animate-in fade-in duration-200">
-              <button onClick={onBack} className="text-[#E63946] hover:underline text-xs font-bold flex items-center gap-1 shrink-0">
-                <ArrowLeft className="w-3.5 h-3.5" /> Back
-              </button>
-              <span className="text-slate-300">|</span>
-              <span className="text-xs font-medium text-slate-600 truncate">
-                {readingArticle.title}
-              </span>
-            </div>
-          )}
+          {/* Desktop Integrated Categories Navigation Bar */}
+          <nav className="hidden lg:flex items-center space-x-1 overflow-x-auto no-scrollbar py-0.5 min-w-0 justify-center flex-1 px-2">
+            {/* Top Stories Pill */}
+            <button
+              onClick={() => onCategoryClick?.(null)}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase transition-all shrink-0 ${
+                !activeCategory
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100'
+              }`}
+            >
+              Top Stories
+            </button>
+
+            {CATEGORIES.map((cat) => {
+              const isSelected = activeCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => handleCategoryClick(cat)}
+                  className={`px-2.5 py-1.5 rounded-full text-xs font-semibold tracking-normal transition-all shrink-0 whitespace-nowrap relative ${
+                    isSelected
+                      ? 'bg-[#E63946] text-white font-bold shadow-xs'
+                      : 'text-slate-700 hover:text-slate-950 hover:bg-slate-100'
+                  }`}
+                >
+                  {cat}
+                  {isSelected && (
+                    <span className="inline-block ml-1 opacity-70 hover:opacity-100">✕</span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
 
           {/* Actions: Search, Saved Bookmarks, Newsletter */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             <button
               onClick={onSearchClick}
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-medium transition-all shadow-xs"
               aria-label="Search articles"
             >
               <Search className="w-4 h-4 text-slate-400" />
-              <span className="hidden md:inline text-slate-500 font-sans">Search stories...</span>
-              <kbd className="hidden md:inline-block px-1.5 py-0.5 text-[9px] font-mono font-semibold text-slate-400 bg-slate-100 rounded border border-slate-200">
+              <span className="hidden xl:inline text-slate-500 font-sans">Search...</span>
+              <kbd className="hidden xl:inline-block px-1.5 py-0.5 text-[9px] font-mono font-semibold text-slate-400 bg-slate-100 rounded border border-slate-200">
                 ⌘K
               </kbd>
             </button>
@@ -426,7 +448,7 @@ export default function Header({
 
             <button
               onClick={onSubscribeClick}
-              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-slate-950 hover:bg-[#E63946] text-white text-xs font-bold tracking-wide transition-all shadow-sm hover:shadow-md cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-950 hover:bg-[#E63946] text-white text-xs font-bold tracking-wide transition-all shadow-sm hover:shadow-md cursor-pointer shrink-0"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>Newsletter</span>
@@ -435,54 +457,6 @@ export default function Header({
 
         </div>
       </div>
-
-      {/* ── DESKTOP NAVIGATION BAR ── */}
-      <nav className="hidden lg:block bg-white border-t border-slate-200/70 shadow-2xs">
-        <div className="max-w-[1600px] mx-auto px-8 flex items-center justify-between">
-          
-          <div className="flex items-center space-x-1 py-1">
-            {/* All Stories Pill */}
-            <button
-              onClick={() => onCategoryClick?.(null)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase transition-all ${
-                !activeCategory
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100'
-              }`}
-            >
-              Top Stories
-            </button>
-
-            {CATEGORIES.map((cat) => {
-              const isSelected = activeCategory === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => handleCategoryClick(cat)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold tracking-normal transition-all relative ${
-                    isSelected
-                      ? 'bg-[#E63946] text-white font-bold shadow-xs'
-                      : 'text-slate-700 hover:text-slate-950 hover:bg-slate-100'
-                  }`}
-                >
-                  {cat}
-                  {isSelected && (
-                    <span className="inline-block ml-1 opacity-70 hover:opacity-100">✕</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center gap-3 text-xs font-bold text-[#0D5C46]">
-            <span className="flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#0D5C46] animate-pulse" />
-              JHARKHAND RADAR
-            </span>
-          </div>
-
-        </div>
-      </nav>
 
       {/* ── MOBILE HORIZONTAL CATEGORY STRIP ── */}
       {!readingArticle && (

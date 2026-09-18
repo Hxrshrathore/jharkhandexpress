@@ -394,7 +394,7 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
   const savedArticlesList = allArticles.filter(a => savedArticleIds.includes(a.id));
 
   return (
-    <div className="min-h-screen font-sans selection:bg-red-600/20 selection:text-black overflow-x-hidden">
+    <div className="min-h-screen font-sans selection:bg-red-600/20 selection:text-black overflow-x-clip">
       <div className="relative z-100">
         <NotificationPrompt 
           visible={isNotificationVisible} 
@@ -423,16 +423,18 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
         />
       </div>
 
-      <TrendingBar
-        selectedFilter={dateFilter}
-        customDate={customArchiveDate}
-        onFilterChange={handleDateFilterChange}
-        onTopicClick={handleTopicClick}
-        selectedTopic={selectedTopic}
-        articles={allArticles}
-      />
+      {currentView !== 'article' && (
+        <TrendingBar
+          selectedFilter={dateFilter}
+          customDate={customArchiveDate}
+          onFilterChange={handleDateFilterChange}
+          onTopicClick={handleTopicClick}
+          selectedTopic={selectedTopic}
+          articles={allArticles}
+        />
+      )}
       
-      <main className="relative overflow-hidden bg-white text-black pb-20 lg:pb-0" role="main">
+      <main className="relative bg-white text-black pb-20 lg:pb-0" role="main">
         <AnimatePresence mode="wait">
           {currentView === 'home' ? (
             <motion.div
@@ -600,6 +602,10 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
                   onArticleChange={setReadingArticle}
                   headerOffset={isNotificationVisible ? 85 : 46}
                   globalSettings={globalSettings}
+                  onSearchClick={() => {
+                    sendGAEvent('event', 'search_click', { source: 'article_header' });
+                    setIsSearchOpen(true);
+                  }}
                 />
               )}
             </motion.div>

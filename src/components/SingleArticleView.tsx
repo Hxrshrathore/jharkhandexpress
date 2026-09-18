@@ -65,6 +65,8 @@ interface SingleArticleViewProps {
   onInView: (article: Article) => void;
   onBack?: () => void;
   globalSettings?: any;
+  fontSize?: 'normal' | 'large' | 'xlarge';
+  hideDuplicateBar?: boolean;
 }
 
 // Media Collage Bento Grid
@@ -139,11 +141,15 @@ export default function SingleArticleView({
   onArticleClick, 
   onInView, 
   onBack, 
-  globalSettings 
+  globalSettings,
+  fontSize: propFontSize,
+  hideDuplicateBar = false
 }: SingleArticleViewProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [fontSize, setFontSize] = useState<'normal' | 'large' | 'xlarge'>('normal');
+  const [internalFontSize, setInternalFontSize] = useState<'normal' | 'large' | 'xlarge'>('normal');
+  const fontSize = propFontSize || internalFontSize;
+  const setFontSize = setInternalFontSize;
   const [isNewsletterSubscribed, setIsNewsletterSubscribed] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const containerRef = useRef<HTMLElement>(null);
@@ -408,16 +414,18 @@ export default function SingleArticleView({
       id={`article-container-${article.id}`} 
       className="w-full bg-[#FAF9F6] text-slate-900 pb-24 relative selection:bg-emerald-100 selection:text-emerald-900"
     >
-      {/* ── Fixed Reading Progress Bar ── */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-slate-200/50">
-        <div 
-          className="h-full bg-gradient-to-r from-[#0D5C46] via-[#2A9D8F] to-[#E63946] transition-all duration-150"
-          style={{ width: `${scrollProgress}%` }}
-        />
-      </div>
+      {/* ── Fixed Reading Progress Bar (only if not hosted in sticky ArticleView) ── */}
+      {!hideDuplicateBar && (
+        <>
+          <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-slate-200/50">
+            <div 
+              className="h-full bg-gradient-to-r from-[#0D5C46] via-[#2A9D8F] to-[#E63946] transition-all duration-150"
+              style={{ width: `${scrollProgress}%` }}
+            />
+          </div>
 
-      {/* ── Editorial Utility Bar ── */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-slate-200/90 shadow-xs">
+          {/* ── Editorial Utility Bar ── */}
+          <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-slate-200/90 shadow-xs">
         <div className="max-w-[1360px] mx-auto px-4 sm:px-8 py-2.5 flex items-center justify-between gap-4">
           
           {/* Breadcrumb / Back */}
@@ -557,6 +565,8 @@ export default function SingleArticleView({
 
         </div>
       </div>
+    </>
+  )}
 
       {/* ── Main Container: Editorial Layout ── */}
       <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-12">
