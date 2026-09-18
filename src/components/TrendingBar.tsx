@@ -35,43 +35,84 @@ export default function TrendingBar({
 
   useEffect(() => {
     if (articles && articles.length > 0) {
-      const tagCounts: Record<string, number> = {};
-      
+      const tagStats: Record<string, { count: number; score: number; isTrending: boolean }> = {};
+      const now = Date.now();
+
       articles.forEach(a => {
-        // Collect from tags
+        const publishedTime = a.publishedAt ? new Date(a.publishedAt).getTime() : now;
+        const hoursAgo = Math.max(0, (now - publishedTime) / (1000 * 60 * 60));
+        
+        // Recency factor: stories from last 12h get 4x, 24h get 3x, 48h get 2x, older get 1x
+        const recencyWeight = hoursAgo <= 12 ? 4 : hoursAgo <= 24 ? 3 : hoursAgo <= 48 ? 2 : 1;
+        const isStoryTrending = Boolean(a.trending || a.categories?.includes('Breaking News') || a.category === 'Breaking News');
+        const trendingBonus = isStoryTrending ? 6 : 0;
+
+        const allStoryTags = new Set<string>();
         if (a.tags && Array.isArray(a.tags)) {
           a.tags.forEach((t: string) => {
             const cleanTag = t.trim().replace(/^#/, '');
-            if (cleanTag && cleanTag.length > 1) {
-              tagCounts[cleanTag] = (tagCounts[cleanTag] || 0) + 1;
-            }
+            if (cleanTag && cleanTag.length > 1) allStoryTags.add(cleanTag);
           });
         }
-        // Also capture category
         if (a.category && typeof a.category === 'string') {
-          tagCounts[a.category] = (tagCounts[a.category] || 0) + 1;
+          const cleanCat = a.category.trim();
+          if (cleanCat && cleanCat !== 'News' && cleanCat.length > 2) allStoryTags.add(cleanCat);
         }
+
+        allStoryTags.forEach(tag => {
+          if (!tagStats[tag]) {
+            tagStats[tag] = { count: 0, score: 0, isTrending: false };
+          }
+          tagStats[tag].count += 1;
+          tagStats[tag].score += recencyWeight + trendingBonus;
+          if (isStoryTrending) tagStats[tag].isTrending = true;
+        });
       });
 
-      const extractedTags = Object.entries(tagCounts)
-        .sort((a, b) => b[1] - a[1])
-        .map(([label]) => label);
+      const sortedTags = Object.entries(tagStats)
+        .sort((a, b) => b[1].score - a[1].score);
 
-      // Merge extracted tags with popular defaults to ensure the bar is full
-      const combined = Array.from(new Set([...extractedTags, ...DEFAULT_POPULAR_TOPICS])).slice(0, 30);
+      const allScores = sortedTags.map(([, s]) => s.score);
+      const avgScore = allScores.length > 0 ? (allScores.reduce((sum, v) => sum + v, 0) / allScores.length) : 0;
 
-      const dynamicTopics = combined.map((label, idx) => ({
-        label,
-        slug: label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-        hot: idx < 3
-      }));
+      // Dynamic Hot / Flame criteria:
+      // A tag is dynamically "hot" if:
+      // 1. It belongs to an active trending/breaking story, OR
+      // 2. Its dynamic velocity score is >= 4 and significantly higher than average.
+      const hotScoreThreshold = Math.max(4, avgScore * 1.3);
 
-      setTrendingTopics(dynamicTopics);
+      let hotCount = 0;
+      const dynamicTopics = sortedTags.map(([label, stat]) => {
+        const isSurging = stat.isTrending || (stat.score >= hotScoreThreshold && stat.count >= 1);
+        let hot = false;
+        if (isSurging && hotCount < 4) {
+          hot = true;
+          hotCount++;
+        }
+        return {
+          label,
+          slug: label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+          hot
+        };
+      });
+
+      // Complement with regional topics if total tags are under 30 (fallback topics never have hot = true)
+      const existingSlugs = new Set(dynamicTopics.map(t => t.slug));
+      const filler = DEFAULT_POPULAR_TOPICS
+        .filter(t => !existingSlugs.has(t.toLowerCase().replace(/[^a-z0-9]+/g, '-')))
+        .map(label => ({
+          label,
+          slug: label.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          hot: false
+        }));
+
+      const finalTopics = [...dynamicTopics, ...filler].slice(0, 35);
+      setTrendingTopics(finalTopics);
     } else {
-      const fallbackTopics = DEFAULT_POPULAR_TOPICS.map((label, idx) => ({
+      const fallbackTopics = DEFAULT_POPULAR_TOPICS.map((label) => ({
         label,
         slug: label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-        hot: idx < 3
+        hot: false
       }));
       setTrendingTopics(fallbackTopics);
     }
