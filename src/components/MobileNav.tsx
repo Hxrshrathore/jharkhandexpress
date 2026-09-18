@@ -209,7 +209,7 @@ export default function MobileNav({
             >
               <div className="relative flex items-center justify-center w-6 h-6 mb-0.5">
                 <Radio className="w-5 h-5 text-[#0D5C46] dark:text-emerald-400" strokeWidth={2.2} />
-                <span className="absolute top-0 right-0 flex h-2 w-2 pointer-events-none">
+                <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 flex h-2 w-2 pointer-events-none">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
                 </span>

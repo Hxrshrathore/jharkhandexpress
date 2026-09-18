@@ -110,9 +110,9 @@ export default function Header({
       setIsSimulated(false);
       const updateRealTime = () => {
         const now = new Date();
-        const dateStr = now.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
-        const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-        setTime(`${dateStr}, ${timeStr}`);
+        const dateStr = now.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+        const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        setTime(`${dateStr} • ${timeStr}`);
       };
       updateRealTime();
       intervalId = setInterval(updateRealTime, 1000);
@@ -147,23 +147,25 @@ export default function Header({
         <div className="max-w-[1600px] mx-auto flex items-center justify-between">
           
           {/* Left: Dateline, Live Indicator, Weather */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5 sm:gap-4 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className="font-mono text-[10px] tracking-widest text-emerald-400 font-semibold uppercase">
-                {isSimulated ? 'ARCHIVE WIRE' : 'EXPRESS LIVE'}
+              <span className="font-mono text-[9px] sm:text-[10px] tracking-widest text-emerald-400 font-semibold uppercase">
+                {isSimulated ? 'ARCHIVE' : 'LIVE'}
               </span>
             </div>
 
-            <div className="hidden sm:flex items-center gap-1.5 text-slate-400 pl-3 border-l border-slate-800">
-              <Clock className="w-3 h-3 text-slate-400" />
-              <span className="font-mono tracking-tight text-[11px] text-slate-300">{time || 'Live'}</span>
+            <div className="flex items-center gap-1.5 text-slate-400 pl-2 sm:pl-3 border-l border-slate-800 shrink-0">
+              <Clock className="w-3 h-3 text-emerald-400 shrink-0" />
+              <span className="font-mono tracking-tight text-[10px] sm:text-[11px] text-slate-200 whitespace-nowrap">
+                {time || 'Live Wire'}
+              </span>
             </div>
 
-            <div className="hidden md:flex items-center gap-1 text-slate-300 pl-3 border-l border-slate-800">
+            <div className="hidden md:flex items-center gap-1 text-slate-300 pl-3 border-l border-slate-800 shrink-0">
               <span className="text-amber-400 text-xs">☀️</span>
               <span className="font-sans font-semibold text-[11px]">Ranchi 27°C</span>
             </div>
@@ -311,9 +313,15 @@ export default function Header({
                 <span className="font-serif font-black text-xl tracking-tight text-slate-950 leading-tight group-hover:text-[#E63946] transition-colors">
                   JHARKHAND EXPRESS
                 </span>
-                <span className="text-[9px] font-sans font-bold tracking-widest text-[#0D5C46] uppercase -mt-0.5">
-                  The Voice of East India • Real Journalism
-                </span>
+                <div className="flex items-center gap-2 text-[9px] font-sans font-bold tracking-widest text-[#0D5C46] uppercase -mt-0.5">
+                  <span>The Voice of East India</span>
+                  {time && (
+                    <>
+                      <span className="text-slate-300 font-normal">•</span>
+                      <span className="text-slate-500 font-mono font-medium tracking-normal normal-case">{time}</span>
+                    </>
+                  )}
+                </div>
               </div>
             </a>
           </div>
@@ -470,7 +478,15 @@ export default function Header({
             >
               <div>
                 <div className="flex items-center justify-between p-5 border-b border-slate-100">
-                  <img src={BRAND.logoWebp} alt={BRAND.name} className="h-9 w-auto" />
+                  <div>
+                    <img src={BRAND.logoWebp} alt={BRAND.name} className="h-9 w-auto" />
+                    {time && (
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-500 mt-1">
+                        <Clock className="w-3 h-3 text-[#0D5C46]" />
+                        <span>{time}</span>
+                      </div>
+                    )}
+                  </div>
                   <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-400 hover:text-slate-800">
                     <X className="w-5 h-5" />
                   </button>
