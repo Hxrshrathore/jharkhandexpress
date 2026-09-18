@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, Menu, Clock, ArrowLeft, X, Globe, Radio, Bookmark, Sparkles, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BRAND, SUPPORTED_LANGUAGES, LanguageCode } from '@/lib/brand';
@@ -55,11 +55,52 @@ export default function Header({
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState<LanguageCode>('en');
 
+  const [isVisible, setIsVisible] = useState(true);
+  const [isScrolledPastTop, setIsScrolledPastTop] = useState(false);
+  const lastScrollY = useRef(0);
+  const headerRef = useRef<HTMLElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
+
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    if (headerRef.current) {
+      setHeaderHeight(headerRef.current.offsetHeight);
+    }
   }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // 1. When near the top of the page
+      if (currentScrollY <= 70) {
+        setIsVisible(true);
+        setIsScrolled(false);
+        setIsScrolledPastTop(false);
+        lastScrollY.current = currentScrollY;
+        return;
+      }
+
+      setIsScrolled(true);
+      setIsScrolledPastTop(true);
+      const diff = currentScrollY - lastScrollY.current;
+
+      // 2. Scrolling UP: Reveal header immediately
+      if (diff < -5) {
+        setIsVisible(true);
+      } 
+      // 3. Scrolling DOWN: Hide header to maximize content reading
+      else if (diff > 8 && currentScrollY > 120) {
+        if (!isMobileMenuOpen && !isLangMenuOpen) {
+          setIsVisible(false);
+        }
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isMobileMenuOpen, isLangMenuOpen]);
 
   // Clock management
   useEffect(() => {
@@ -140,7 +181,22 @@ export default function Header({
   };
 
   return (
-    <header className="relative w-full z-100 bg-[#FAF9F6] border-b border-slate-200/80 transition-shadow">
+    <>
+      {/* Spacer to prevent page jump when header becomes fixed */}
+      {isScrolledPastTop && (
+        <div style={{ height: headerHeight ? `${headerHeight}px` : '120px' }} aria-hidden="true" />
+      )}
+
+      <header
+        ref={headerRef}
+        className={`w-full z-100 bg-[#FAF9F6] border-b border-slate-200/80 transition-transform duration-300 ease-in-out ${
+          isScrolledPastTop
+            ? `fixed top-0 left-0 right-0 shadow-lg ${
+                isVisible ? 'translate-y-0' : '-translate-y-full pointer-events-none'
+              }`
+            : 'relative'
+        }`}
+      >
       
       {/* ── TOP UTILITY STRIP ── */}
       <div className="bg-[#0B132B] text-slate-200 text-[11px] font-medium py-1.5 px-4 sm:px-8 border-b border-slate-800">
@@ -568,5 +624,6 @@ export default function Header({
       </AnimatePresence>
 
     </header>
+    </>
   );
 }

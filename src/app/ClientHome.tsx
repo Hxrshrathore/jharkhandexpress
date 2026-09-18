@@ -395,7 +395,7 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
 
   return (
     <div className="min-h-screen font-sans selection:bg-red-600/20 selection:text-black overflow-x-hidden">
-      <div className="sticky top-0 z-100">
+      <div className="relative z-100">
         <NotificationPrompt 
           visible={isNotificationVisible} 
           onClose={() => {

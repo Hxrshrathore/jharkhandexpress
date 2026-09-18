@@ -1,15 +1,29 @@
-import { useState, useRef, useEffect } from 'react';
+"use client";
+
+import React, { useState, useRef, useEffect } from 'react';
 import { Article } from '../types';
-import { Clock, Share2, Bookmark, CheckCircle2, Bot, MessageSquare, ArrowLeft, Home, Link2, MessageCircle } from 'lucide-react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useGSAP } from '@gsap/react';
+import { 
+  Clock, 
+  Share2, 
+  Bookmark, 
+  CheckCircle2, 
+  Bot, 
+  ArrowLeft, 
+  Link2, 
+  MessageCircle, 
+  Sparkles, 
+  Send, 
+  Type, 
+  Flame, 
+  Calendar, 
+  TrendingUp, 
+  ChevronRight,
+  ExternalLink
+} from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import CustomVideoPlayer from './CustomVideoPlayer';
 import AdPlacement from './AdPlacement';
 import { toast } from 'sonner';
-
-gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const TwitterIcon = ({ className }: { className?: string }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -32,15 +46,15 @@ interface SingleArticleViewProps {
   globalSettings?: any;
 }
 
-// Bento grid layout for multiple images/videos
+// Media Collage Bento Grid
 function BentoMediaCollage({ items }: { items: Array<{ type: 'image' | 'video', url: string }> }) {
   if (items.length === 0) return null;
   if (items.length === 1) {
     const item = items[0];
     return (
-      <div className="my-8 overflow-hidden border border-brand-black/10 dark:border-white/10 bg-brand-black/5 dark:bg-white/5 rounded-xl">
+      <div className="my-10 overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 rounded-2xl shadow-md">
         {item.type === 'image' ? (
-          <img src={item.url} alt="Article media" className="w-full h-auto object-cover max-h-125" />
+          <img src={item.url} alt="Article media" className="w-full h-auto object-cover max-h-[550px]" />
         ) : (
           <div className="aspect-video w-full">
             <CustomVideoPlayer src={item.url} />
@@ -50,19 +64,19 @@ function BentoMediaCollage({ items }: { items: Array<{ type: 'image' | 'video', 
     );
   }
 
-  let gridClass = "grid gap-3 my-8";
+  let gridClass = "grid gap-3.5 my-10";
   if (items.length === 2) {
     gridClass += " grid-cols-1 md:grid-cols-2";
   } else if (items.length === 3) {
-    gridClass += " grid-cols-1 md:grid-cols-3 md:grid-rows-2 h-[450px]";
+    gridClass += " grid-cols-1 md:grid-cols-3 md:grid-rows-2 h-[460px]";
   } else {
-    gridClass += " grid-cols-1 md:grid-cols-4 md:grid-rows-2 h-[550px]";
+    gridClass += " grid-cols-1 md:grid-cols-4 md:grid-rows-2 h-[560px]";
   }
 
   return (
     <div className={gridClass}>
       {items.map((item, idx) => {
-        let itemClass = "relative overflow-hidden bg-brand-black/5 dark:bg-white/5 border border-brand-black/10 dark:border-white/10 group rounded-xl";
+        let itemClass = "relative overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 group rounded-2xl shadow-xs";
         
         if (items.length === 3) {
           if (idx === 0) {
@@ -85,13 +99,12 @@ function BentoMediaCollage({ items }: { items: Array<{ type: 'image' | 'video', 
             {item.type === 'image' ? (
               <img 
                 src={item.url} 
-                alt={`Collage media ${idx + 1}`} 
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                alt={`Media asset ${idx + 1}`} 
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-103"
               />
             ) : (
               <CustomVideoPlayer src={item.url} />
             )}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 dark:group-hover:bg-white/5 transition-colors pointer-events-none" />
           </div>
         );
       })}
@@ -99,12 +112,23 @@ function BentoMediaCollage({ items }: { items: Array<{ type: 'image' | 'video', 
   );
 }
 
-export default function SingleArticleView({ article, articles, onArticleClick, onInView, onBack, globalSettings }: SingleArticleViewProps) {
+export default function SingleArticleView({ 
+  article, 
+  articles, 
+  onArticleClick, 
+  onInView, 
+  onBack, 
+  globalSettings 
+}: SingleArticleViewProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [fontSize, setFontSize] = useState<'normal' | 'large' | 'xlarge'>('normal');
+  const [isNewsletterSubscribed, setIsNewsletterSubscribed] = useState(false);
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const containerRef = useRef<HTMLElement>(null);
 
+  // Bookmark check
   useEffect(() => {
-    // Check if article is bookmarked
     const saved = localStorage.getItem('je_saved_articles');
     if (saved) {
       try {
@@ -114,17 +138,31 @@ export default function SingleArticleView({ article, articles, onArticleClick, o
         }
       } catch (e) {}
     }
-
-    if (typeof window === 'undefined') return;
-    const mediaQuery = window.matchMedia('(min-width: 1024px)');
-    setIsDesktop(mediaQuery.matches);
-
-    const handleMQChange = (e: MediaQueryListEvent) => {
-      setIsDesktop(e.matches);
-    };
-    mediaQuery.addEventListener('change', handleMQChange);
-    return () => mediaQuery.removeEventListener('change', handleMQChange);
   }, [article.id]);
+
+  // Scroll reading progress listener
+  useEffect(() => {
+    const handleScroll = () => {
+      const element = containerRef.current;
+      if (!element) return;
+      const totalHeight = element.clientHeight - window.innerHeight;
+      if (totalHeight <= 0) {
+        setScrollProgress(0);
+        return;
+      }
+      const top = window.scrollY - element.offsetTop;
+      const progress = Math.min(100, Math.max(0, (top / totalHeight) * 100));
+      setScrollProgress(progress);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Trigger onInView for tracking
+  useEffect(() => {
+    onInView(article);
+  }, [article, onInView]);
 
   const toggleBookmark = () => {
     const saved = localStorage.getItem('je_saved_articles');
@@ -136,13 +174,39 @@ export default function SingleArticleView({ article, articles, onArticleClick, o
     if (isBookmarked) {
       parsed = parsed.filter(id => id !== article.id);
       setIsBookmarked(false);
-      toast('Article removed from saved.');
+      toast('Article removed from bookmarks');
     } else {
       if (!parsed.includes(article.id)) parsed.push(article.id);
       setIsBookmarked(true);
-      toast.success('Article saved!');
+      toast.success('Article saved to your reading list');
     }
     localStorage.setItem('je_saved_articles', JSON.stringify(parsed));
+  };
+
+  const copyArticleLink = () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        toast.success('Article link copied to clipboard');
+      }).catch(() => {
+        toast('Link copied');
+      });
+    } else {
+      toast.success('Article link ready');
+    }
+  };
+
+  const cycleFontSize = () => {
+    if (fontSize === 'normal') setFontSize('large');
+    else if (fontSize === 'large') setFontSize('xlarge');
+    else setFontSize('normal');
+  };
+
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail) return;
+    setIsNewsletterSubscribed(true);
+    toast.success('Subscribed to Jharkhand Express Morning Dispatch!');
   };
 
   const heroVideoSrc = article.featuredVideo || (article.videoGallery && article.videoGallery.length > 0 ? article.videoGallery[0] : undefined);
@@ -152,12 +216,11 @@ export default function SingleArticleView({ article, articles, onArticleClick, o
     ...(article.videoGallery || []).map(url => ({ type: 'video' as const, url }))
   ];
 
+  // Intelligent Ad & Media Content Renderer
   const renderContentWithMedia = () => {
-    // Check if the article was built using the new Intelligent Layout Engine
     const hasExplicitAds = article.content.includes('<!-- wp:truth/ad-slot');
     
     if (hasExplicitAds) {
-      // NEW ARTICLE LOGIC: Respect explicit layout
       const parts = article.content.split(/(<!-- wp:truth\/ad-slot type=".*?" \/-->)/g);
       return (
         <>
@@ -166,7 +229,14 @@ export default function SingleArticleView({ article, articles, onArticleClick, o
             if (adMatch) {
                const type = adMatch[1] as 'leaderboard' | 'rectangle';
                return (
-                 <AdPlacement key={index} type={type} slotId={`ARTICLE-${article.id}-${type}-${index}`} wrapperClassName="my-12 flex justify-center w-full" globalSettings={globalSettings} placementContext="article" />
+                 <AdPlacement 
+                   key={index} 
+                   type={type} 
+                   slotId={`ARTICLE-${article.id}-${type}-${index}`} 
+                   wrapperClassName="my-10 flex justify-center w-full" 
+                   globalSettings={globalSettings} 
+                   placementContext="article" 
+                 />
                );
             }
             if (part.trim() === '') return null;
@@ -176,24 +246,18 @@ export default function SingleArticleView({ article, articles, onArticleClick, o
       );
     }
 
-    // OLD ARTICLE LOGIC: Intelligent Auto-Placer Fallback
-    // 1. Strip out old auto-appended wp:gallery/video blocks so they don't double-render
+    // Standard Intelligent Auto-Placer
     let cleanContent = article.content.replace(/<!-- wp:gallery[\s\S]*?<!-- \/wp:gallery -->/g, '');
     cleanContent = cleanContent.replace(/<!-- wp:video[\s\S]*?<!-- \/wp:video -->/g, '');
     
-    // 2. Parse into clean paragraphs
     const paragraphs = cleanContent.split('</p>').filter(p => p.trim() !== '');
     const formattedParagraphs = paragraphs.map(p => p.endsWith('</p>') ? p : p + '</p>');
     
-    // Pre-calculate Dynamic Ad Distribution
     const allAds = globalSettings?.site_ads || [];
     const currentDateObj = globalSettings?.simulated_date ? new Date(globalSettings.simulated_date) : new Date();
     
-    // Filter active article rectangle ads
     const activeRectangleAds = allAds.filter((ad: any) => {
-      if (!ad.active) return false;
-      if (ad.type !== 'rectangle') return false;
-      if (!ad.show_in_articles) return false;
+      if (!ad.active || ad.type !== 'rectangle' || !ad.show_in_articles) return false;
       const validFrom = new Date(ad.valid_from);
       const validTo = new Date(ad.valid_to);
       return currentDateObj >= validFrom && currentDateObj <= validTo;
@@ -203,20 +267,12 @@ export default function SingleArticleView({ article, articles, onArticleClick, o
       title: 'Sponsored Placement',
     }));
 
-    // Prevent video carousels - if there's a video, only show the first video. Otherwise, show all as carousel.
     let rectangleAdItems: any[] = [];
     const videoRectangleAd = activeRectangleAds.find((ad: any) => /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(ad.imageUrl));
-    if (videoRectangleAd) {
-      rectangleAdItems = [videoRectangleAd];
-    } else {
-      rectangleAdItems = activeRectangleAds;
-    }
+    rectangleAdItems = videoRectangleAd ? [videoRectangleAd] : activeRectangleAds;
 
-    // Filter active article leaderboard ads
     const activeArticleAds = allAds.filter((ad: any) => {
-      if (!ad.active) return false;
-      if (ad.type !== 'leaderboard') return false;
-      if (!ad.show_in_articles) return false;
+      if (!ad.active || ad.type !== 'leaderboard' || !ad.show_in_articles) return false;
       const validFrom = new Date(ad.valid_from);
       const validTo = new Date(ad.valid_to);
       return currentDateObj >= validFrom && currentDateObj <= validTo;
@@ -226,24 +282,16 @@ export default function SingleArticleView({ article, articles, onArticleClick, o
       title: 'Sponsored Placement',
     }));
 
-    // Calculate maximum available ad containers (slots)
-    // Guarantee a paragraph above and below: maxContainers = paragraphs.length - 1
-    // If only 1 paragraph exists, we allow 1 slot at the bottom.
     const maxContainers = Math.max(1, formattedParagraphs.length - 1); 
-    
-    // Divide active ads into chunks based on available containers
     const chunkArray = (arr: any[], numChunks: number) => {
       const chunks: any[][] = Array.from({ length: numChunks }, () => []);
       arr.forEach((item, index) => {
         chunks[index % numChunks].push(item);
       });
-      // Filter out empty chunks if we had more slots than ads
       return chunks.filter(c => c.length > 0);
     };
     
     const adChunks = chunkArray(activeArticleAds, maxContainers);
-    
-    // 3. Weave Ads and Media intelligently
     const elements: React.ReactNode[] = [];
     
     if (formattedParagraphs.length === 0) {
@@ -255,39 +303,35 @@ export default function SingleArticleView({ article, articles, onArticleClick, o
     formattedParagraphs.forEach((para, idx) => {
        elements.push(<div key={`p-${idx}`} dangerouslySetInnerHTML={{ __html: para }} />);
        
-       // Inject Dynamic Ad Block for this slot if a chunk exists
        if (idx < adChunks.length) {
           elements.push(
              <AdPlacement 
                key={`dynamic-ad-slot-${idx}`} 
                type="leaderboard" 
                slotId={`AUTO-DYN-${article.id}-${idx}`} 
-               wrapperClassName="my-12 flex justify-center w-full" 
+               wrapperClassName="my-10 flex justify-center w-full" 
                items={adChunks[idx]}
              />
           );
        }
        
-       // After Paragraph 2: Inject Media Collage
        if (idx === 1 && mediaItems.length > 0) {
           elements.push(<BentoMediaCollage key={`media-${idx}`} items={mediaItems} />);
        }
-       // Inject Rectangle Ad block at a single optimal position
-       // Ideal position: after paragraph 4 (idx === 3). If article is shorter, we'll catch it at the bottom.
+
        if (idx === 3 && rectangleAdItems.length > 0) {
           elements.push(
              <AdPlacement 
                key={`dynamic-rect-slot-${idx}`} 
                type="rectangle" 
                slotId={`AUTO-DYN-REC-${article.id}`} 
-               wrapperClassName="my-12 flex justify-center w-full" 
+               wrapperClassName="my-10 flex justify-center w-full" 
                items={rectangleAdItems}
              />
           );
        }
     });
     
-    // Catch-all if article was too short to trigger the media or rectangle injection
     if (formattedParagraphs.length <= 1 && mediaItems.length > 0) {
        elements.push(<BentoMediaCollage key="media-fallback" items={mediaItems} />);
     }
@@ -297,7 +341,7 @@ export default function SingleArticleView({ article, articles, onArticleClick, o
             key="dynamic-rect-slot-fallback" 
             type="rectangle" 
             slotId={`AUTO-DYN-REC-${article.id}-fallback`} 
-            wrapperClassName="my-12 flex justify-center w-full" 
+            wrapperClassName="my-10 flex justify-center w-full" 
             items={rectangleAdItems}
           />
        );
@@ -306,440 +350,502 @@ export default function SingleArticleView({ article, articles, onArticleClick, o
     return <>{elements}</>;
   };
 
+  // Trending & Related Articles
+  const relatedArticles = articles
+    .filter(a => a.id !== article.id && (a.category === article.category || !article.category))
+    .slice(0, 6);
 
-  const containerRef = useRef<HTMLElement>(null);
+  const trendingStories = articles
+    .filter(a => a.id !== article.id)
+    .slice(0, 5);
 
-  useGSAP(() => {
-    // Parallax hero image and hero video
-    gsap.to(`.hero-image-${article.id}, .hero-video-${article.id}`, {
-      y: '20%',
-      ease: 'none',
-      scrollTrigger: {
-        trigger: `.hero-container-${article.id}`,
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: true,
-      }
-    });
+  const categoryName = typeof article.category === 'string' ? article.category : 'Jharkhand';
+  const authorName = article.author?.name || 'Bureau Special Correspondent';
+  const formattedDate = new Date(article.publishedAt).toLocaleDateString('en-IN', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  const formattedTime = new Date(article.publishedAt).toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
 
-    // Content reveals
-    gsap.utils.toArray(`.reveal-text-${article.id}`).forEach((el: any) => {
-      gsap.from(el, {
-        y: 40,
-        autoAlpha: 0,
-        duration: 1,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: el,
-          start: 'top 85%',
-        }
-      });
-    });
-
-    // Detect when article is main focus for SEO/URL updates
-    ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: 'top 50%',
-      end: 'bottom 50%',
-      onEnter: () => onInView(article),
-      onEnterBack: () => onInView(article),
-    });
-
-  }, { scope: containerRef, dependencies: [article.id] });
+  const fontClass = fontSize === 'large' 
+    ? 'text-lg sm:text-[21px] leading-[1.85]' 
+    : fontSize === 'xlarge' 
+    ? 'text-xl sm:text-[23px] leading-[1.95]' 
+    : 'text-base sm:text-[18px] leading-[1.8]';
 
   return (
-    <article ref={containerRef} id={`article-container-${article.id}`} className="w-full max-w-[1600px] mx-auto border-b-4 border-brand-black/20 lg:border-none pb-20 lg:pb-32 mb-20 lg:mb-32 relative overflow-hidden">
-      
-      {/* Ambient Desktop Glows */}
-      <div className="hidden lg:block fixed top-0 left-1/4 w-150 h-100 bg-emerald-600/5 rounded-full blur-[140px] pointer-events-none -z-10"></div>
-      <div className="hidden lg:block fixed bottom-0 right-1/4 w-125 h-75 bg-purple-600/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+    <article 
+      ref={containerRef} 
+      id={`article-container-${article.id}`} 
+      className="w-full bg-[#FAF9F6] text-slate-900 pb-24 relative selection:bg-emerald-100 selection:text-emerald-900"
+    >
+      {/* ── Fixed Reading Progress Bar ── */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-slate-200/50">
+        <div 
+          className="h-full bg-gradient-to-r from-[#0D5C46] via-[#2A9D8F] to-[#E63946] transition-all duration-150"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
 
-      {/* Desktop Fixed Left Toolbar — pinned to viewport, not in grid */}
-      <div className="hidden lg:flex fixed left-4 xl:left-8 top-1/2 -translate-y-1/2 flex-col items-center gap-4 z-40">
-        <TooltipProvider delayDuration={200}>
-          <div className="flex flex-col items-center gap-4">
-            {/* Back to Home Button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <a
-                  href="/"
-                  className="flex items-center justify-center gap-2 bg-card/80 backdrop-blur-xl border border-border shadow-lg rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all px-3 py-3 group cursor-pointer"
-                >
-                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest hidden 2xl:block">Home</span>
-                </a>
-              </TooltipTrigger>
-              <TooltipContent side="right"><p>Back to Home</p></TooltipContent>
-            </Tooltip>
+      {/* ── Editorial Utility Bar ── */}
+      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-slate-200/90 shadow-xs">
+        <div className="max-w-[1360px] mx-auto px-4 sm:px-8 py-2.5 flex items-center justify-between gap-4">
+          
+          {/* Breadcrumb / Back */}
+          <div className="flex items-center gap-3 min-w-0">
+            {onBack ? (
+              <button
+                onClick={onBack}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all shrink-0 active:scale-95"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back</span>
+              </button>
+            ) : (
+              <a
+                href="/"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all shrink-0"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Home</span>
+              </a>
+            )}
 
-            {/* Tools Pill */}
-            <div className="flex flex-col items-center gap-5 bg-card/80 backdrop-blur-xl border border-border shadow-lg rounded-full py-6 px-3">
+            <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500 font-sans truncate">
+              <span className="text-slate-400">/</span>
+              <span className="font-semibold text-slate-700 uppercase tracking-wider text-[11px] shrink-0">
+                {categoryName}
+              </span>
+              <span className="text-slate-300">/</span>
+              <span className="truncate text-slate-600 font-medium max-w-sm lg:max-w-md">
+                {article.title}
+              </span>
+            </div>
+          </div>
 
-
+          {/* Quick Reading Actions */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Font Size Adjuster */}
+            <TooltipProvider delayDuration={150}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={() => {
-                      const summaryWidget = document.getElementById(`summary-${article.id}`);
-                      if (summaryWidget) {
-                        summaryWidget.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        summaryWidget.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
-                        setTimeout(() => summaryWidget.classList.remove('ring-2', 'ring-primary', 'ring-offset-2'), 2000);
-                      }
-                    }}
-                    className="text-muted-foreground hover:text-primary transition-all hover:scale-110"
+                    onClick={cycleFontSize}
+                    className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all flex items-center gap-1 text-xs font-semibold"
+                    aria-label="Adjust font size"
                   >
-                    <Bot className="w-5 h-5" />
+                    <Type className="w-4 h-4" />
+                    <span className="text-[10px] uppercase font-mono font-bold hidden md:inline">
+                      {fontSize === 'normal' ? '1x' : fontSize === 'large' ? '1.2x' : '1.4x'}
+                    </span>
                   </button>
                 </TooltipTrigger>
-                <TooltipContent side="right"><p>AI Summary</p></TooltipContent>
+                <TooltipContent side="bottom"><p>Toggle text size</p></TooltipContent>
               </Tooltip>
 
-              <div className="w-5 h-px bg-border" />
-
+              {/* WhatsApp Instant Share */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <a
-                    href={`https://wa.me/?text=${encodeURIComponent(`${article.title} - ${window.location.href}`)}`}
+                    href={`https://wa.me/?text=${encodeURIComponent(`${article.title} • Jharkhand Express: ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-[#25D366] transition-all hover:scale-110"
+                    className="p-2 rounded-xl text-[#25D366] hover:bg-[#25D366]/10 transition-all active:scale-95"
+                    aria-label="Share on WhatsApp"
                   >
-                    <MessageCircle className="w-5 h-5" />
+                    <MessageCircle className="w-4 h-4 fill-current" />
                   </a>
                 </TooltipTrigger>
-                <TooltipContent side="right"><p>Share on WhatsApp</p></TooltipContent>
+                <TooltipContent side="bottom"><p>Share on WhatsApp</p></TooltipContent>
               </Tooltip>
 
+              {/* Twitter / X Share */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <a
-                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(window.location.href)}`}
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-[#1DA1F2] transition-all hover:scale-110"
+                    className="p-2 rounded-xl text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-all hidden sm:flex active:scale-95"
+                    aria-label="Share on X"
                   >
-                    <TwitterIcon className="w-5 h-5" />
+                    <TwitterIcon className="w-3.5 h-3.5" />
                   </a>
                 </TooltipTrigger>
-                <TooltipContent side="right"><p>Share on Twitter</p></TooltipContent>
+                <TooltipContent side="bottom"><p>Share on X</p></TooltipContent>
               </Tooltip>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <a
-                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-[#1877F2] transition-all hover:scale-110"
-                  >
-                    <FacebookIcon className="w-5 h-5" />
-                  </a>
-                </TooltipTrigger>
-                <TooltipContent side="right"><p>Share on Facebook</p></TooltipContent>
-              </Tooltip>
-
+              {/* Copy Link */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={() => {
-                      const textToCopy = window.location.href;
-                      if (navigator.clipboard && navigator.clipboard.writeText) {
-                        navigator.clipboard.writeText(textToCopy).catch(() => {});
-                      } else {
-                        const textArea = document.createElement("textarea");
-                        textArea.value = textToCopy;
-                        document.body.appendChild(textArea);
-                        textArea.select();
-                        try { document.execCommand('copy'); } catch (err) {}
-                        document.body.removeChild(textArea);
-                      }
-                      toast("Link copied to clipboard!");
-                    }}
-                    className="text-muted-foreground hover:text-foreground transition-all hover:scale-110"
+                    onClick={copyArticleLink}
+                    className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all active:scale-95"
+                    aria-label="Copy article link"
                   >
-                    <Link2 className="w-5 h-5" />
+                    <Link2 className="w-4 h-4" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent side="right"><p>Copy Link</p></TooltipContent>
+                <TooltipContent side="bottom"><p>Copy Link</p></TooltipContent>
               </Tooltip>
 
+              {/* Bookmark */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     onClick={toggleBookmark}
-                    className={`transition-all hover:scale-110 ${isBookmarked ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                    className={`p-2 rounded-xl transition-all active:scale-95 ${
+                      isBookmarked 
+                        ? 'text-[#E63946] bg-[#E63946]/10 font-bold' 
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    }`}
+                    aria-label="Bookmark article"
                   >
-                    <Bookmark className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} />
+                    <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent side="right"><p>{isBookmarked ? "Bookmarked" : "Bookmark"}</p></TooltipContent>
+                <TooltipContent side="bottom"><p>{isBookmarked ? 'Bookmarked' : 'Save Story'}</p></TooltipContent>
               </Tooltip>
-            </div>
+            </TooltipProvider>
           </div>
-        </TooltipProvider>
+
+        </div>
       </div>
 
-      {/* Main grid — no longer includes the left toolbar col */}
-      <div className="lg:grid lg:grid-cols-12 lg:gap-8 xl:gap-12 lg:px-16 xl:px-20 pt-0 lg:pt-16">
-        <div className="hidden lg:block lg:col-span-1" /> {/* Spacer for fixed sidebar */}
+      {/* ── Main Container: Editorial Layout ── */}
+      <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-12">
+        <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-start">
+          
+          {/* ── Left / Center Main Article Column (8 cols) ── */}
+          <main className="lg:col-span-8 space-y-8">
+            
+            {/* Section Tag & Dateline */}
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-widest bg-[#0D5C46] text-white shadow-xs">
+                {categoryName}
+              </span>
+              <span className="text-slate-300">•</span>
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                <Clock className="w-3.5 h-3.5 text-slate-400" />
+                <span>{article.readingTime || '4 min'} read</span>
+              </span>
+              <span className="text-slate-300">•</span>
+              <span className="text-xs font-mono uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                Verified Dispatch
+              </span>
+            </div>
 
-        {/* MAIN COLUMN */}
-        <div className="lg:col-span-8">
-           <div className="flex flex-col lg:bg-card/90 lg:backdrop-blur-xl lg:border lg:border-border lg:shadow-2xl lg:rounded-2xl lg:overflow-hidden lg:pb-24 relative transition-colors duration-500">
-              
-              {/* Header (Order 1 on mobile, Order 2 on desktop) */}
-              <header className="order-1 lg:order-2 px-4 sm:px-6 lg:px-20 pt-8 lg:pt-16 pb-8 lg:pb-12 text-center max-w-5xl mx-auto w-full">
-                <div className={`reveal-text-${article.id}`}>
-                  <div className="flex items-center justify-center gap-4 mb-8">
-                    <span className={`px-3 py-1 text-white text-[10px] font-extrabold tracking-[0.2em] uppercase rounded-full shadow-xs ${
-                      (article.category === 'Breaking' || article.category === 'Breaking News') ? 'bg-[#E63946]' : 'bg-[#0D5C46]'
-                    }`}>
-                      {article.category}
-                    </span>
-                    <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase opacity-50 text-foreground">
-                      <Clock className="w-3 h-3" />
-                      {article.readingTime} read
-                    </div>
-                  </div>
+            {/* Main Headline */}
+            <h1 className="font-serif font-black text-2xl sm:text-4xl md:text-5xl lg:text-[46px] leading-[1.18] tracking-tight text-slate-950">
+              {article.title}
+            </h1>
 
-                  <h1 className="article-headline text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-serif font-bold tracking-tight mb-5 lg:mb-8 leading-[1.2] text-slate-900 text-center lg:text-left">
-                    {article.title}
-                  </h1>
+            {/* Subtitle / Lead Paragraph if excerpt exists */}
+            {article.excerpt && (
+              <p className="text-lg sm:text-xl text-slate-600 font-serif italic leading-relaxed border-l-2 border-[#0D5C46] pl-4 py-0.5">
+                {article.excerpt}
+              </p>
+            )}
 
-                  <div className="text-center lg:text-left">
-                    <span className="block text-[11px] font-mono font-medium text-slate-500 uppercase tracking-wider">
-                      Published on {new Date(article.publishedAt).toLocaleDateString('en-IN', { month: 'long', day: 'numeric', year: 'numeric' })} • Ranchi Bureau
-                    </span>
-                  </div>
-
-                  {/* Generative Engine Optimization (GEO) / Key Takeaways Box */}
-                  {article.excerpt && (
-                    <div className="key-takeaways mt-6 text-left p-5 sm:p-6 bg-emerald-50/50 border border-emerald-900/10 rounded-xl shadow-xs">
-                      <div className="flex items-center gap-2 mb-2.5">
-                        <span className="w-2 h-2 rounded-full bg-[#0D5C46] animate-pulse" />
-                        <span className="text-[10px] font-mono font-bold uppercase tracking-[0.15em] text-[#0D5C46]">
-                          Core Developments • Verified Dateline
-                        </span>
-                        <span className="ml-auto text-[10px] font-mono text-slate-400 uppercase">Ranchi, JH</span>
-                      </div>
-                      <p className="article-excerpt text-sm sm:text-[15px] text-slate-800 leading-relaxed font-sans font-medium">
-                        {article.excerpt}
-                      </p>
-                    </div>
-                  )}
+            {/* ── Rich Bureau Byline Card ── */}
+            <div className="flex items-center justify-between flex-wrap gap-4 py-4 border-y border-slate-200/90 text-sm">
+              <div className="flex items-center gap-3.5">
+                {/* Author Avatar Badge */}
+                <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#0D5C46] to-[#2A9D8F] flex items-center justify-center text-white font-serif font-bold text-base shadow-xs ring-2 ring-emerald-100">
+                  {authorName.charAt(0)}
                 </div>
-              </header>
-
-              {/* Featured Image (Order 2 on mobile, Order 1 on desktop) */}
-              <div className="order-2 lg:order-1 mb-16 lg:mb-0">
-                <div className={`hero-container-${article.id} px-6 lg:px-0 relative`}>
-                   {/* Premium Ambient Blur Container for Mixed Aspect Ratios */}
-                   <div className="w-full relative lg:rounded-none rounded-2xl overflow-hidden bg-black/5 dark:bg-black/40 flex justify-center items-center min-h-50 sm:min-h-65 max-h-[50vh] lg:max-h-[70vh]">
-                    
-                    {/* Ambient Background Blur */}
-                    {!article.youtubeVideoId && (!isDesktop || !heroVideoSrc) && (
-                      <div 
-                        className="absolute inset-0 bg-cover bg-center blur-3xl opacity-40 dark:opacity-20 scale-110"
-                        style={{ backgroundImage: `url(${article.imageUrl})` }}
-                      />
-                    )}
-
-                    {article.youtubeVideoId ? (
-                      <div className="aspect-21/9 w-full relative z-10">
-                        <iframe
-                          src={`https://www.youtube.com/embed/${article.youtubeVideoId}?autoplay=1&mute=1&loop=1&playlist=${article.youtubeVideoId}&controls=1`}
-                          className={`w-full h-full hero-video-${article.id} border-0`}
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      </div>
-                    ) : isDesktop && heroVideoSrc ? (
-                      <div className="w-full h-full relative z-10 max-h-[70vh] flex justify-center items-center">
-                        <CustomVideoPlayer
-                          src={heroVideoSrc}
-                          autoplayHero={true}
-                          videoClassName={`hero-video-${article.id} object-contain max-h-[70vh] w-auto`}
-                        />
-                      </div>
-                    ) : (
-                      <img 
-                        src={article.imageUrl} 
-                        alt={article.title}
-                        className={`hero-image-${article.id} w-auto h-auto max-w-full max-h-[50vh] lg:max-h-[70vh] object-contain relative z-10 drop-shadow-2xl`}
-                      />
-                    )}
-                   </div>
-                </div>
-                {article.imageCaption && (
-                  <div className="max-w-4xl mx-auto mt-4 text-center hidden lg:block">
-                    <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
-                      — {article.imageCaption}
-                    </p>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-slate-900 font-sans tracking-tight text-[15px]">
+                      {authorName}
+                    </span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 fill-emerald-100" />
                   </div>
-                )}
+                  <div className="text-xs text-slate-500 flex items-center gap-2">
+                    <span>Ranchi Special Bureau</span>
+                    <span>•</span>
+                    <span>{formattedTime} IST</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Content (Order 3 on both) */}
-              <main className="order-3 px-4 sm:px-6 lg:px-20 pt-6 lg:pt-0 prose prose-base lg:prose-xl dark:prose-invert prose-brand-black dark:prose-p:text-zinc-300 dark:prose-headings:text-zinc-100 max-w-none overflow-hidden">
-                
-                {/* AI Summary Widget */}
-                {article.aiSummary && (
-                  <div id={`summary-${article.id}`} className={`mt-6 bg-primary/5 border border-primary/20 rounded-xl p-8 mb-16 relative group transition-all duration-300 reveal-text-${article.id}`}>
-                    <div className="absolute -top-3 left-6 px-3 py-1 bg-primary text-primary-foreground rounded-full text-[10px] font-bold tracking-widest uppercase flex items-center gap-2 shadow-md">
-                      <Bot className="w-3 h-3" /> AI Insight
-                    </div>
-                    <p className="text-primary text-lg lg:text-xl font-medium leading-relaxed italic m-0">
-                      "{article.aiSummary}"
-                    </p>
-                  </div>
-                )}
+              <div className="text-xs text-slate-500 font-mono text-right">
+                <div className="flex items-center gap-1.5 justify-end">
+                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                  <span>{formattedDate}</span>
+                </div>
+                <span className="text-[11px] text-emerald-700 font-medium">Updated Wire</span>
+              </div>
+            </div>
 
-                <div className={`leading-[1.7] font-medium space-y-8 reveal-text-${article.id}`}>
-                  {renderContentWithMedia()}
+            {/* ── Hero Media (Image or Video) ── */}
+            <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-lg relative group">
+              {article.youtubeVideoId ? (
+                <div className="aspect-video w-full">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${article.youtubeVideoId}?autoplay=0&controls=1`}
+                    className="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              ) : heroVideoSrc ? (
+                <div className="w-full aspect-video">
+                  <CustomVideoPlayer src={heroVideoSrc} autoplayHero={false} />
+                </div>
+              ) : (
+                <img 
+                  src={article.imageUrl} 
+                  alt={article.title}
+                  className="w-full h-auto max-h-[580px] object-cover"
+                />
+              )}
+
+              {/* Photo Caption & Source Credit */}
+              {article.imageCaption ? (
+                <div className="p-3 bg-white/95 border-t border-slate-200/80 text-xs text-slate-600 font-sans flex items-center justify-between">
+                  <span>{article.imageCaption}</span>
+                  <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider shrink-0 ml-4">
+                    Photo: Bureau Desk
+                  </span>
+                </div>
+              ) : (
+                <div className="p-2.5 bg-white/95 border-t border-slate-200/80 text-[11px] text-slate-500 font-mono flex items-center justify-between">
+                  <span>Jharkhand Express News Service</span>
+                  <span className="uppercase text-[10px] tracking-wider text-slate-400">Archive Photo</span>
+                </div>
+              )}
+            </div>
+
+            {/* ── Executive Brief / AI Takeaway Box ── */}
+            {(article.aiSummary || article.excerpt) && (
+              <div className="bg-gradient-to-br from-emerald-50/70 via-white to-teal-50/40 border border-emerald-200/80 rounded-2xl p-6 shadow-xs relative overflow-hidden">
+                <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#0D5C46] via-[#2A9D8F] to-[#E63946]" />
+                
+                <div className="flex items-center gap-2 mb-3 text-[#0D5C46]">
+                  <Sparkles className="w-4 h-4" />
+                  <span className="text-[11px] font-mono font-bold tracking-wider uppercase">
+                    Executive Brief • 60-Second Dispatch
+                  </span>
                 </div>
 
+                <p className="text-slate-800 font-sans leading-relaxed text-sm sm:text-base font-medium">
+                  {article.aiSummary || article.excerpt}
+                </p>
+              </div>
+            )}
 
-                {/* Similar Articles / More Articles */}
-                <section className="mt-16 lg:mt-24 border-t border-border pt-10 lg:pt-16 not-prose">
-                  <div className="flex items-center gap-3 mb-8 text-foreground">
-                    <h3 className="text-2xl font-serif italic m-0">Similar Articles</h3>
+            {/* ── Article Content Body ── */}
+            <div className={`prose max-w-none font-serif text-slate-800 space-y-6 ${fontClass}`}>
+              {renderContentWithMedia()}
+            </div>
+
+            {/* ── Tags & Attribution ── */}
+            {Array.isArray(article.tags) && article.tags.length > 0 && (
+              <div className="pt-6 border-t border-slate-200">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-mono uppercase tracking-wider text-slate-400 mr-2">
+                    Filed Under:
+                  </span>
+                  {article.tags.map((tag, idx) => (
+                    <span 
+                      key={idx} 
+                      className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── Story Action Footer ── */}
+            <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <h4 className="font-serif font-bold text-base text-slate-900 mb-0.5">
+                  Did this report inform you?
+                </h4>
+                <p className="text-xs text-slate-500 font-sans">
+                  Share this verified dispatch with your network across Jharkhand and Eastern India.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(`${article.title} • Read more on Jharkhand Express: ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366] text-white text-xs font-bold shadow-xs hover:bg-[#20bd5a] transition-all"
+                >
+                  <MessageCircle className="w-4 h-4 fill-current" />
+                  <span>WhatsApp Share</span>
+                </a>
+
+                <button
+                  onClick={toggleBookmark}
+                  className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all ${
+                    isBookmarked 
+                      ? 'border-[#E63946] bg-[#E63946]/10 text-[#E63946]' 
+                      : 'border-slate-200 hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
+                  <span>{isBookmarked ? 'Saved' : 'Save'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* ── Related Coverage Grid ── */}
+            {relatedArticles.length > 0 && (
+              <section className="pt-10 border-t border-slate-200">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#0D5C46]" />
+                    <h3 className="font-serif font-bold text-xl sm:text-2xl text-slate-900 tracking-tight">
+                      Related Coverage in {categoryName}
+                    </h3>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {articles
-                      .filter((a) => a.category === article.category && a.id !== article.id)
-                      .slice(0, 6)
-                      .map((related) => (
-                        <div 
-                          key={related.id} 
-                          className="group cursor-pointer space-y-4"
-                          onClick={() => onArticleClick(related)}
-                        >
-                          <div className="aspect-video overflow-hidden bg-muted rounded-xl relative shadow-md">
-                            <img 
-                              src={related.imageUrl} 
-                              alt={related.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                            />
-                            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500"></div>
-                          </div>
-                          <div>
-                            <span className="text-[9px] font-bold text-primary tracking-widest uppercase block mb-2">
-                              {related.category}
-                            </span>
-                            <h5 className="text-sm md:text-base font-serif font-medium leading-snug group-hover:text-primary transition-colors text-foreground">
-                              {related.title}
-                            </h5>
-                          </div>
+                  <span className="text-xs font-mono text-slate-400 uppercase">
+                    More Dispatches
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {relatedArticles.slice(0, 3).map((rel) => (
+                    <div
+                      key={rel.id}
+                      onClick={() => onArticleClick(rel)}
+                      className="group cursor-pointer bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex flex-col"
+                    >
+                      <div className="aspect-16/10 overflow-hidden bg-slate-100 relative">
+                        <img 
+                          src={rel.imageUrl} 
+                          alt={rel.title}
+                          className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
+                        />
+                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-[#0D5C46] text-white">
+                          {rel.category}
+                        </span>
+                      </div>
+                      <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                        <h4 className="font-serif font-bold text-sm sm:text-[15px] leading-snug text-slate-900 group-hover:text-[#0D5C46] transition-colors line-clamp-3">
+                          {rel.title}
+                        </h4>
+                        <div className="text-[11px] font-mono text-slate-400 flex items-center justify-between pt-2 border-t border-slate-100">
+                          <span>{new Date(rel.publishedAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}</span>
+                          <span className="flex items-center gap-1 font-sans font-bold text-[#0D5C46] group-hover:translate-x-0.5 transition-transform">
+                            Read <ChevronRight className="w-3 h-3" />
+                          </span>
                         </div>
-                      ))}
-                    {articles.filter((a) => a.category === article.category && a.id !== article.id).length === 0 && (
-                      <p className="text-xs text-muted-foreground font-mono">No similar articles found.</p>
-                    )}
-                  </div>
-                </section>
-              </main>
-           </div>
-        </div>
-        
-        {/* RIGHT SIDEBAR — desktop only */}
-        <aside className="hidden lg:block lg:col-span-3 space-y-12 px-4 mt-0 sticky top-24 self-start">
-          <div className="bg-card/50 backdrop-blur-xl border border-border rounded-2xl p-6 lg:p-8 shadow-xl">
-            <h4 className="text-[10px] tracking-widest uppercase text-muted-foreground mb-8 flex items-center gap-2 font-bold">
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span> Related Coverage
-            </h4>
-            <div className="space-y-8">
-              {articles
-                .filter((a) => a.category === article.category && a.id !== article.id)
-                .slice(0, 3)
-                .map((related) => (
-                  <div 
-                    key={related.id} 
-                    className="group cursor-pointer space-y-4"
-                    onClick={() => onArticleClick(related)}
-                  >
-                    <div className="aspect-video overflow-hidden bg-muted rounded-xl relative shadow-md">
-                      <img 
-                        src={related.imageUrl} 
-                        alt={related.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                      <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500"></div>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-[9px] font-bold text-primary tracking-widest uppercase block mb-2">
-                        {related.category}
+                  ))}
+                </div>
+              </section>
+            )}
+
+          </main>
+
+          {/* ── Right Column: Sticky Editorial Sidebar (4 cols) ── */}
+          <aside className="hidden lg:block lg:col-span-4 space-y-8 sticky top-20 self-start">
+            
+            {/* 1. Trending in Jharkhand */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
+              <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 mb-5">
+                <div className="flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-[#E63946]" />
+                  <h3 className="font-serif font-bold text-base text-slate-900 tracking-tight">
+                    Trending in Jharkhand
+                  </h3>
+                </div>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400">
+                  Live Wire
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                {trendingStories.map((trend, idx) => (
+                  <div
+                    key={trend.id}
+                    onClick={() => onArticleClick(trend)}
+                    className="group cursor-pointer flex items-start gap-3 pb-3.5 border-b border-slate-100 last:border-0 last:pb-0"
+                  >
+                    <span className="font-serif font-black text-2xl text-slate-300 group-hover:text-[#E63946] transition-colors shrink-0 w-7">
+                      0{idx + 1}
+                    </span>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold block">
+                        {trend.category}
                       </span>
-                      <h5 className="text-sm md:text-base font-serif font-medium leading-snug group-hover:text-primary transition-colors text-foreground">
-                        {related.title}
-                      </h5>
+                      <h4 className="font-serif font-bold text-sm leading-snug text-slate-800 group-hover:text-[#0D5C46] transition-colors line-clamp-2">
+                        {trend.title}
+                      </h4>
                     </div>
                   </div>
                 ))}
-              {articles.filter((a) => a.category === article.category && a.id !== article.id).length === 0 && (
-                <p className="text-xs text-muted-foreground font-mono">No related coverage found.</p>
+              </div>
+            </div>
+
+            {/* 2. Sidebar Sponsored Placement */}
+            <div className="bg-slate-100/70 border border-slate-200/80 rounded-2xl p-4 flex justify-center overflow-hidden">
+              <AdPlacement 
+                type="rectangle" 
+                slotId="HP-REC-01" 
+                globalSettings={globalSettings} 
+                placementContext="article" 
+              />
+            </div>
+
+            {/* 3. Morning Dispatch Newsletter Card */}
+            <div className="bg-gradient-to-br from-[#0B132B] to-[#1C2541] text-white rounded-2xl p-6 shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+              
+              <div className="flex items-center gap-2 text-emerald-400 mb-2">
+                <Send className="w-4 h-4" />
+                <span className="text-[10px] font-mono tracking-widest uppercase font-bold">
+                  Morning Dispatch
+                </span>
+              </div>
+
+              <h4 className="font-serif font-bold text-lg text-white mb-2 leading-snug">
+                Jharkhand's Key Headlines, Delivered at 7:00 AM
+              </h4>
+              <p className="text-xs text-slate-300 mb-4 font-sans leading-relaxed">
+                Get an uncompromised briefing on state politics, mining, governance, and business corridors every weekday.
+              </p>
+
+              {isNewsletterSubscribed ? (
+                <div className="p-3 bg-emerald-900/40 border border-emerald-500/30 rounded-xl text-center text-xs text-emerald-300 font-semibold">
+                  ✓ You are subscribed to Morning Dispatch!
+                </div>
+              ) : (
+                <form onSubmit={handleNewsletterSubmit} className="space-y-2.5">
+                  <input 
+                    type="email" 
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                    placeholder="Enter your email address" 
+                    required
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 text-xs focus:outline-hidden focus:border-emerald-400 transition-colors"
+                  />
+                  <button 
+                    type="submit"
+                    className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md transition-all active:scale-95"
+                  >
+                    Join Morning Briefing
+                  </button>
+                </form>
               )}
             </div>
-          </div>
-        </aside>
 
-      </div>
+          </aside>
 
-      {/* Mobile Bottom Action Bar — native app feel */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border safe-area-pb">
-        <div className="flex items-center justify-around px-4 py-3">
-          <button onClick={onBack || (() => window.location.href = '/')} className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-            <span className="text-[9px] font-bold uppercase tracking-wider">Home</span>
-          </button>
-
-          <button
-            onClick={() => {
-              const shareData = {
-                title: 'Jharkhand Express',
-                text: `Read this article on Jharkhand Express: ${article.title}`,
-                url: window.location.href,
-              };
-              
-              const fallbackCopy = () => {
-                const textToCopy = `${shareData.text}\n${shareData.url}`;
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                  navigator.clipboard.writeText(textToCopy).catch(() => {});
-                } else {
-                  const textArea = document.createElement("textarea");
-                  textArea.value = textToCopy;
-                  document.body.appendChild(textArea);
-                  textArea.select();
-                  try { document.execCommand('copy'); } catch (err) {}
-                  document.body.removeChild(textArea);
-                }
-                toast('Link copied to clipboard');
-              };
-
-              if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-                navigator.share(shareData).catch((err) => {
-                  if (err.name !== 'AbortError') fallbackCopy();
-                });
-              } else if (navigator.share) {
-                navigator.share(shareData).catch((err) => {
-                  if (err.name !== 'AbortError') fallbackCopy();
-                });
-              } else {
-                fallbackCopy();
-              }
-            }}
-            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Share2 className="w-5 h-5" />
-            <span className="text-[9px] font-bold uppercase tracking-wider">Share</span>
-          </button>
-          <button
-            onClick={toggleBookmark}
-            className={`flex flex-col items-center gap-1 transition-colors ${isBookmarked ? 'text-primary' : 'text-muted-foreground'}`}
-          >
-            <Bookmark className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} />
-            <span className="text-[9px] font-bold uppercase tracking-wider">Save</span>
-          </button>
         </div>
       </div>
     </article>
