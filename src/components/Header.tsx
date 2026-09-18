@@ -23,6 +23,17 @@ interface HeaderProps {
   whatsappUrl?: string;
 }
 
+function getWeatherEmoji(code: number): string {
+  if (code === 0) return '☀️';
+  if (code >= 1 && code <= 3) return '🌤️';
+  if (code >= 45 && code <= 48) return '🌫️';
+  if (code >= 51 && code <= 65) return '🌧️';
+  if (code >= 71 && code <= 77) return '❄️';
+  if (code >= 80 && code <= 82) return '🌦️';
+  if (code >= 95) return '⛈️';
+  return '☀️';
+}
+
 const CATEGORIES = [
   'Jharkhand',
   'National',
@@ -60,6 +71,44 @@ export default function Header({
   const lastScrollY = useRef(0);
   const headerRef = useRef<HTMLElement>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [weather, setWeather] = useState<{ temp: number; city: string; code: number } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    async function fetchWeather() {
+      try {
+        let lat = 23.3441;
+        let lon = 85.3096;
+        let city = 'Ranchi';
+        try {
+          const geoRes = await fetch('/api/geo');
+          if (geoRes.ok) {
+            const geoData = await geoRes.json();
+            if (geoData.latitude && geoData.longitude) {
+              lat = geoData.latitude;
+              lon = geoData.longitude;
+              city = geoData.city || city;
+            }
+          }
+        } catch (e) {}
+
+        if (!active) return;
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`);
+        if (res.ok && active) {
+          const data = await res.json();
+          if (data.current) {
+            setWeather({
+              temp: Math.round(data.current.temperature_2m),
+              city,
+              code: data.current.weather_code,
+            });
+          }
+        }
+      } catch (err) {}
+    }
+    fetchWeather();
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     if (headerRef.current) {
@@ -221,10 +270,21 @@ export default function Header({
               </span>
             </div>
 
-            <div className="hidden md:flex items-center gap-1 text-slate-300 pl-3 border-l border-slate-800 shrink-0">
-              <span className="text-amber-400 text-xs">☀️</span>
-              <span className="font-sans font-semibold text-[11px]">Ranchi 27°C</span>
-            </div>
+            {weather ? (
+              <div className="flex items-center gap-1 text-slate-300 pl-2 sm:pl-3 border-l border-slate-800 shrink-0">
+                <span className="text-amber-400 text-xs">{getWeatherEmoji(weather.code)}</span>
+                <span className="font-sans font-semibold text-[10px] sm:text-[11px] text-slate-200 whitespace-nowrap">
+                  {weather.city} {weather.temp}°C
+                </span>
+              </div>
+            ) : (
+              <div className="hidden sm:flex items-center gap-1 text-slate-300 pl-2 sm:pl-3 border-l border-slate-800 shrink-0">
+                <span className="text-amber-400 text-xs">☀️</span>
+                <span className="font-sans font-semibold text-[10px] sm:text-[11px] text-slate-200 whitespace-nowrap">
+                  Ranchi 27°C
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Center: Edition Switcher */}
