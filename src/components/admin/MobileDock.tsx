@@ -82,7 +82,9 @@ export default function MobileDock() {
       </div>
 
       {/* Main Bottom Dock */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/80 backdrop-blur-xl border-t border-border pb-safe">
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/90 backdrop-blur-xl border-t border-border pb-safe">
+        {/* Signature brand accent line */}
+        <div className="h-[2px] w-full bg-gradient-to-r from-[#0D5C46] via-[#2A9D8F] to-[#E63946]" />
         <div className="flex items-center justify-around h-16 px-2">
           {quickAccess.map((item) => {
             const active = isActive(item.href);

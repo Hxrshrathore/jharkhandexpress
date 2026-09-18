@@ -20,6 +20,7 @@ interface HeaderProps {
   simulatedDate?: string;
   savedCount?: number;
   onSavedClick?: () => void;
+  whatsappUrl?: string;
 }
 
 const CATEGORIES = [
@@ -44,6 +45,7 @@ export default function Header({
   simulatedDate,
   savedCount = 0,
   onSavedClick,
+  whatsappUrl,
 }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -251,7 +253,7 @@ export default function Header({
             </div>
 
             <a
-              href="https://whatsapp.com/channel/YOUR_CHANNEL_ID"
+              href={whatsappUrl || "https://whatsapp.com/channel/YOUR_CHANNEL_ID"}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#25D366]/20 border border-[#25D366]/40 text-[#25D366] text-[10px] font-bold hover:bg-[#25D366] hover:text-white transition-all shadow-xs"
@@ -534,7 +536,7 @@ export default function Header({
                   Join Morning Dispatch
                 </button>
                 <a
-                  href="https://whatsapp.com/channel/YOUR_CHANNEL_ID"
+                  href={whatsappUrl || "https://whatsapp.com/channel/YOUR_CHANNEL_ID"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-2.5 bg-[#25D366] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2"

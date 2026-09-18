@@ -135,6 +135,18 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
     }
   }, [initialArticleSlug, dbArticles]);
 
+  // Global ⌘K / Ctrl+K search shortcut listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const getCleanWaybackBase = () => {
     if (typeof window !== 'undefined' && window.location.pathname.startsWith('/wayback/')) {
       const match = window.location.pathname.match(/^(\/wayback\/[^/]+)/);
@@ -407,6 +419,7 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
           simulatedDate={globalSettings?.has_explicit_time ? (globalSettings?.simulated_date || simulatedDate) : undefined}
           savedCount={savedArticleIds.length}
           onSavedClick={() => setCurrentView('saved')}
+          whatsappUrl={globalSettings?.whatsapp_url}
         />
       </div>
 
@@ -478,42 +491,72 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
                     {/* Left Column: Hard News & Features */}
                     <div className="w-full lg:w-8/12 xl:w-3/4 flex flex-col">
                       
+                      {selectedCategory && (
+                        <div className="mb-8 p-5 rounded-2xl bg-slate-100/90 border border-slate-200/90 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="w-3 h-3 rounded-full bg-[#E63946] animate-pulse" />
+                            <div>
+                              <h2 className="text-xl font-serif font-bold text-slate-950">
+                                Desk: {selectedCategory}
+                              </h2>
+                              <p className="text-xs font-mono text-slate-500 mt-0.5">
+                                Showing {displayArticles.length} stories
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleCategoryClick(null)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-[#E63946] hover:bg-[#E63946]/10 transition-colors cursor-pointer"
+                          >
+                            Clear Filter ✕
+                          </button>
+                        </div>
+                      )}
+
+                      {selectedCategory && (
+                        <CategorySection title={`${selectedCategory} Dispatches`} articles={displayArticles} onArticleClick={handleArticleClick} columns={4} badgeColor="#E63946" />
+                      )}
+
                       <AdPlacement type="leaderboard" slotId="HP-LEAD-02" simulatedDate={simulatedDate} globalSettings={globalSettings} wrapperClassName="bg-slate-100/70 border border-slate-200/80 rounded-2xl py-3 px-4 flex justify-center mb-8 overflow-hidden" />
 
-                      <CategorySection title="National Desk" articles={nationArticles} onArticleClick={handleArticleClick} columns={4} badgeColor="#1D4ED8" />
-                      <CategorySection title="State Politics & Governance" articles={politicsArticles} onArticleClick={handleArticleClick} columns={4} badgeColor="#E63946" />
-                      
-                      <OpinionSection articles={displayArticles} onArticleClick={handleArticleClick} />
+                      {!selectedCategory && (
+                        <>
+                          <CategorySection title="National Desk" articles={nationArticles} onArticleClick={handleArticleClick} columns={4} badgeColor="#1D4ED8" />
+                          <CategorySection title="State Politics & Governance" articles={politicsArticles} onArticleClick={handleArticleClick} columns={4} badgeColor="#E63946" />
+                          
+                          <OpinionSection articles={displayArticles} onArticleClick={handleArticleClick} />
 
-                      <AdPlacement type="leaderboard" slotId="HP-LEAD-03" simulatedDate={simulatedDate} globalSettings={globalSettings} wrapperClassName="bg-slate-100/70 border border-slate-200/80 rounded-2xl py-3 px-4 flex justify-center my-8 overflow-hidden" />
+                          <AdPlacement type="leaderboard" slotId="HP-LEAD-03" simulatedDate={simulatedDate} globalSettings={globalSettings} wrapperClassName="bg-slate-100/70 border border-slate-200/80 rounded-2xl py-3 px-4 flex justify-center my-8 overflow-hidden" />
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                        <CategorySection title="Jharkhand Pulse" articles={jharkhandArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#0D5C46" />
-                        <CategorySection title="Bihar & Eastern Corridors" articles={biharArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#028090" />
-                      </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                            <CategorySection title="Jharkhand Pulse" articles={jharkhandArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#0D5C46" />
+                            <CategorySection title="Bihar & Eastern Corridors" articles={biharArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#028090" />
+                          </div>
 
-                      <AdPlacement type="leaderboard" slotId="HP-LEAD-04" simulatedDate={simulatedDate} globalSettings={globalSettings} wrapperClassName="bg-slate-100/70 border border-slate-200/80 rounded-2xl py-3 px-4 flex justify-center my-8 overflow-hidden" />
+                          <AdPlacement type="leaderboard" slotId="HP-LEAD-04" simulatedDate={simulatedDate} globalSettings={globalSettings} wrapperClassName="bg-slate-100/70 border border-slate-200/80 rounded-2xl py-3 px-4 flex justify-center my-8 overflow-hidden" />
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                        <CategorySection title="Business & Markets" articles={businessArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#0D5C46" />
-                        <CategorySection title="Crime, Law & Justice" articles={crimeArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#B91C1C" />
-                      </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                            <CategorySection title="Business & Markets" articles={businessArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#0D5C46" />
+                            <CategorySection title="Crime, Law & Justice" articles={crimeArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#B91C1C" />
+                          </div>
 
-                      <AdPlacement type="leaderboard" slotId="HP-LEAD-05" simulatedDate={simulatedDate} globalSettings={globalSettings} wrapperClassName="bg-slate-100/70 border border-slate-200/80 rounded-2xl py-3 px-4 flex justify-center my-8 overflow-hidden" />
+                          <AdPlacement type="leaderboard" slotId="HP-LEAD-05" simulatedDate={simulatedDate} globalSettings={globalSettings} wrapperClassName="bg-slate-100/70 border border-slate-200/80 rounded-2xl py-3 px-4 flex justify-center my-8 overflow-hidden" />
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                        <CategorySection title="Science & Future Tech" articles={techArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#028090" />
-                        <CategorySection title="Delhi & Metros" articles={[...delhiArticles, ...maharashtraArticles].slice(0, 8)} onArticleClick={handleArticleClick} columns={2} badgeColor="#6366F1" />
-                      </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                            <CategorySection title="Science & Future Tech" articles={techArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#028090" />
+                            <CategorySection title="Delhi & Metros" articles={[...delhiArticles, ...maharashtraArticles].slice(0, 8)} onArticleClick={handleArticleClick} columns={2} badgeColor="#6366F1" />
+                          </div>
 
-                      <AdPlacement type="leaderboard" slotId="HP-LEAD-06" simulatedDate={simulatedDate} globalSettings={globalSettings} wrapperClassName="bg-slate-100/70 border border-slate-200/80 rounded-2xl py-3 px-4 flex justify-center my-8 overflow-hidden" />
+                          <AdPlacement type="leaderboard" slotId="HP-LEAD-06" simulatedDate={simulatedDate} globalSettings={globalSettings} wrapperClassName="bg-slate-100/70 border border-slate-200/80 rounded-2xl py-3 px-4 flex justify-center my-8 overflow-hidden" />
 
-                      <CategorySection title="World Affairs & Global Order" articles={worldArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#3B82F6" />
-                        
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 mt-8">
-                        <CategorySection title="Sports Arena" articles={sportsArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#EA580C" />
-                        <CategorySection title="Culture & Cinema" articles={entertainmentArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#EC4899" />
-                      </div>
+                          <CategorySection title="World Affairs & Global Order" articles={worldArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#3B82F6" />
+                            
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 mt-8">
+                            <CategorySection title="Sports Arena" articles={sportsArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#EA580C" />
+                            <CategorySection title="Culture & Cinema" articles={entertainmentArticles} onArticleClick={handleArticleClick} columns={2} badgeColor="#EC4899" />
+                          </div>
+                        </>
+                      )}
 
                     </div>
 
@@ -588,21 +631,41 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
         </AnimatePresence>
       </main>
 
-      {(currentView === 'home' || currentView === 'saved') && (
-        <MobileNav 
-          currentView={currentView}
-          onHomeClick={handleBackToHome}
-          onSavedClick={() => setCurrentView('saved')}
-          onLiveClick={() => {
-            const liveSection = document.getElementById('live-center');
-            if (liveSection) {
-              liveSection.scrollIntoView({ behavior: 'smooth' });
-            }
-          }}
-          onSearchClick={() => setIsSearchOpen(true)}
-          onMenuClick={() => setIsSubscribeOpen(true)}
-        />
-      )}
+      <MobileNav 
+        currentView={currentView}
+        onHomeClick={() => {
+          handleCategoryClick(null);
+          handleBackToHome();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onSavedClick={() => {
+          setCurrentView('saved');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onLiveClick={() => {
+          if (currentView !== 'home') {
+            setCurrentView('home');
+            setTimeout(() => {
+              document.getElementById('live-center')?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+          } else {
+            document.getElementById('live-center')?.scrollIntoView({ behavior: 'smooth' });
+          }
+        }}
+        onSearchClick={() => setIsSearchOpen(true)}
+        onMenuClick={() => setIsSubscribeOpen(true)}
+        savedCount={savedArticleIds.length}
+        activeCategory={selectedCategory}
+        onCategorySelect={(cat) => {
+          handleCategoryClick(cat);
+          if (currentView !== 'home') {
+            setCurrentView('home');
+          }
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onSubscribeClick={() => setIsSubscribeOpen(true)}
+        whatsappUrl={globalSettings?.whatsapp_url}
+      />
       
       {/* ── FOOTER: PREMIER MEDIA HOUSE ── */}
       <footer className="bg-[#0B132B] text-slate-300 border-t border-slate-800 py-16 md:py-20 mt-16">
