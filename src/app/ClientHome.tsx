@@ -423,16 +423,14 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
         />
       </div>
 
-      {currentView !== 'article' && (
-        <TrendingBar
-          selectedFilter={dateFilter}
-          customDate={customArchiveDate}
-          onFilterChange={handleDateFilterChange}
-          onTopicClick={handleTopicClick}
-          selectedTopic={selectedTopic}
-          articles={allArticles}
-        />
-      )}
+      <TrendingBar
+        selectedFilter={dateFilter}
+        customDate={customArchiveDate}
+        onFilterChange={handleDateFilterChange}
+        onTopicClick={handleTopicClick}
+        selectedTopic={selectedTopic}
+        articles={allArticles}
+      />
       
       <main className="relative bg-white text-black pb-20 lg:pb-0" role="main">
         <AnimatePresence mode="wait">
