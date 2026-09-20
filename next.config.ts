@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  ...(process.env.OUTPUT_STANDALONE === 'true' && !process.env.VERCEL ? { output: 'standalone' as const } : {}),
   reactStrictMode: true,
   allowedDevOrigins: ["192.168.0.129", "127.0.0.1", "localhost"],
   images: {
