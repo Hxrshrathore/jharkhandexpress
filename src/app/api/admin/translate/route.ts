@@ -48,11 +48,16 @@ EXCERPT: ${excerpt}
 CONTENT HTML:
 ${content_html}`;
 
+  const startTime = Date.now();
   const response = await ai.models.generateContent({
     model: 'gemini-3.5-flash-lite',
     contents: prompt,
     config: { responseMimeType: 'application/json' },
   });
+
+  const latency = Date.now() - startTime;
+  // Non-blocking track
+  import('@/lib/gemini-tracker').then(m => m.recordGeminiCall(latency)).catch(() => {});
 
   const text = response.text || '{}';
   // Strip markdown code fences if present

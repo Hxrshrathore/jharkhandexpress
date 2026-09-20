@@ -62,7 +62,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const gaId = process.env.NEXT_PUBLIC_GA_ID || 'G-XXXXXXXXXX';
+  const gaId = process.env.NEXT_PUBLIC_GA_ID || 'G-C4J0DN6STL';
   
   const sitewideSchema = {
     '@context': 'https://schema.org',

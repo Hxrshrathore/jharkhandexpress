@@ -1,6 +1,6 @@
 import React from 'react';
 import { getRssItems } from '@/lib/db';
-import { FileText, Users, Eye, TrendingUp, Clock, AlertCircle, Plus, Activity, Rss, PlaySquare, Server, ShieldCheck, Zap, Settings, ArrowRight, Cloud } from 'lucide-react';
+import { FileText, Users, Eye, TrendingUp, Clock, AlertCircle, Plus, Activity, Rss, PlaySquare, Server, ShieldCheck, Zap, Settings, ArrowRight, Cloud, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import MetricsCharts from '@/components/admin/MetricsCharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -222,17 +222,17 @@ export default async function AdminDashboard() {
                 <p className="text-xs text-muted-foreground">Storage used: {totalGB} GB / {maxGB} GB</p>
               </div>
 
-              {/* Redis Card */}
+              {/* Google Gemini AI Engine Card */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-orange-500" />
-                    <span className="text-sm font-semibold">Upstash Redis</span>
+                    <Sparkles className="w-4 h-4 text-indigo-500" />
+                    <span className="text-sm font-semibold">Gemini 3.5 AI</span>
                   </div>
-                  <Badge variant="outline" className="text-[10px] text-orange-500 border-orange-500/20 bg-orange-500/10">ACTIVE</Badge>
+                  <Badge variant="outline" className="text-[10px] text-indigo-500 border-indigo-500/20 bg-indigo-500/10">ACTIVE</Badge>
                 </div>
                 <Progress value={100} className="h-1.5" />
-                <p className="text-xs text-muted-foreground">Timeline cache synced</p>
+                <p className="text-xs text-muted-foreground">Neural generation & translation engine</p>
               </div>
 
               {/* Push Subscribers Card */}

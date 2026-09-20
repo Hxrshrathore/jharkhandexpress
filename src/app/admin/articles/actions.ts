@@ -68,19 +68,25 @@ export async function deleteArticleAction(id: string) {
     }
 
     // 3. Delete YouTube video if exists (Option B)
-        if (article.youtube_video_id || (article.video_gallery && article.video_gallery.length > 0)) {
+    if (article.youtube_video_id || (article.video_gallery && article.video_gallery.length > 0)) {
       try {
-        const googleClientId = process.env.GOOGLE_CLIENT_ID;
-        const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-        const googleRefreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+        let oauth2Client: any = null;
+        try {
+          const { getAuthenticatedClient } = await import('@/lib/youtube/auth');
+          oauth2Client = await getAuthenticatedClient();
+        } catch {
+          const googleClientId = process.env.GOOGLE_CLIENT_ID;
+          const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+          const googleRefreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+          if (googleClientId && googleClientSecret && googleRefreshToken) {
+            const { google } = await import('googleapis');
+            oauth2Client = new google.auth.OAuth2(googleClientId, googleClientSecret);
+            oauth2Client.setCredentials({ refresh_token: googleRefreshToken });
+          }
+        }
         
-        if (googleClientId && googleClientSecret && googleRefreshToken) {
+        if (oauth2Client) {
           const { google } = await import('googleapis');
-          const oauth2Client = new google.auth.OAuth2(
-            googleClientId,
-            googleClientSecret
-          );
-          oauth2Client.setCredentials({ refresh_token: googleRefreshToken });
           const youtube = google.youtube({ version: 'v3', auth: oauth2Client });
           
           const vidsToDelete = new Set<string>();

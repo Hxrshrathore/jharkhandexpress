@@ -1,7 +1,9 @@
 import React from 'react';
 import { signOut } from '@/auth';
-import { LogOut, Bell, Search, ShieldCheck } from 'lucide-react';
+import { LogOut, Search, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
+
+import GeminiUsageMetric from './GeminiUsageMetric';
 
 export default function Header({ user }: { user?: any }) {
   return (
@@ -27,10 +29,8 @@ export default function Header({ user }: { user?: any }) {
       </div>
 
       <div className="flex items-center gap-3 md:gap-6">
-        <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
-        </button>
+        {/* Google Gemini Usage & Quota Metric Widget (Replaces Static Bell) */}
+        <GeminiUsageMetric />
         
         <div className="flex items-center gap-3 border-l border-border pl-3 md:pl-6">
           <div className="hidden sm:flex flex-col items-end">

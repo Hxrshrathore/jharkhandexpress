@@ -581,7 +581,7 @@ export default function ClientHome({
                 {heroArticles.length > 0 ? (
                   <Hero 
                     article={heroArticles[safeHeroIndex]} 
-                    secondaryArticles={heroArticles.slice(1, 4)}
+                    secondaryArticles={displayArticles.filter(a => a.id !== heroArticles[safeHeroIndex]?.id).slice(0, 4)}
                     onClick={handleArticleClick}
                     onPrev={(e) => {
                       e.stopPropagation();
@@ -729,7 +729,7 @@ export default function ClientHome({
                           trending={heroArticles} 
                           live={displayArticles.slice(0, 6).map(a => ({
                             id: a.id,
-                            timestamp: new Date(a.publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            timestamp: new Date(a.publishedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' }),
                             content: a.title,
                             isBreaking: a.category === 'Breaking News' || a.category === 'Breaking'
                           }))} 

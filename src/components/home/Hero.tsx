@@ -40,7 +40,7 @@ export default function Hero({
 }: HeroProps) {
   if (!article) return null;
 
-  const sideArticles = secondaryArticles.slice(0, 3);
+  const sideArticles = secondaryArticles.slice(0, 4);
 
   return (
     <section className="py-6 px-4 sm:px-8 max-w-[1600px] mx-auto">

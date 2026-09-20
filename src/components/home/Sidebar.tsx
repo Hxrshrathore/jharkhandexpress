@@ -203,7 +203,7 @@ export default function Sidebar({
               className="relative pl-6 group cursor-pointer"
             >
               <div className="absolute left-0 top-1.5 w-3 h-3 rounded-full bg-slate-900 border-2 border-slate-700 group-hover:border-[#E63946] group-hover:bg-[#E63946] transition-colors" />
-              <span className="text-[10px] font-mono text-slate-400 block mb-0.5">
+              <span className="text-[10px] font-mono text-slate-400 block mb-0.5" suppressHydrationWarning>
                 {update.timestamp}
               </span>
               <p className="text-xs font-sans text-slate-200 group-hover:text-white leading-relaxed line-clamp-2">
