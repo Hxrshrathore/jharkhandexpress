@@ -279,26 +279,34 @@ export default function AdminPage() {
     // No need to extract thumbnails here, it's done during video upload
 
 
-    const compressionOptions = {
-      maxSizeMB: 0.3, // aggressive compression for mobile
-      maxWidthOrHeight: 1920,
-      useWebWorker: true,
-      fileType: 'image/webp',
-      initialQuality: 0.8
-    };
-
-    const compressedImageFiles = [];
+    const compressedImageFiles: File[] = [];
     for (const file of finalImageFiles) {
+      // If already small (<250KB) or non-raster, skip client-side compression
+      if (file.size < 250 * 1024 || file.type === 'image/svg+xml' || file.type === 'image/gif') {
+        compressedImageFiles.push(file);
+        continue;
+      }
+
       try {
-        const compressedBlob = await imageCompression(file, compressionOptions);
-        const compressedFile = new File([compressedBlob], file.name.replace(/\.[^/.]+$/, ".webp"), { type: 'image/webp' });
+        const compressedBlob = await imageCompression(file, {
+          maxSizeMB: 0.3,
+          maxWidthOrHeight: 1920,
+          useWebWorker: false, // Prevents WebWorker cross-origin Event errors
+          fileType: 'image/webp',
+          initialQuality: 0.8,
+        });
+        const compressedFile = new File(
+          [compressedBlob],
+          file.name.replace(/\.[^/.]+$/, ".webp"),
+          { type: 'image/webp' }
+        );
         compressedImageFiles.push(compressedFile);
       } catch (err) {
-        console.error('Image compression error:', err);
+        console.warn('Client-side compression skipped, uploading original:', err);
         compressedImageFiles.push(file);
       }
-      // Yield to UI thread to prevent mobile lag
-      await new Promise(resolve => setTimeout(resolve, 50));
+      // Yield to UI thread to prevent UI freezing
+      await new Promise(resolve => setTimeout(resolve, 30));
     }
 
     setIsCompressing(false);

@@ -16,33 +16,43 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    if (!file || file.size === 0) {
+      return NextResponse.json({ error: 'No valid file provided or file is empty' }, { status: 400 });
     }
 
     const bucketName = process.env.R2_BUCKET_NAME || 'jharkhand-express';
     const publicUrl = process.env.R2_PUBLIC_URL || 'https://cdn.jharkhandexpress.in';
 
-    // Avoid putting everything in ads folder, use media/
-    const fileName = `media/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
     const bytes = await file.arrayBuffer();
     let buffer = Buffer.from(bytes);
 
-    if (file.type.startsWith('image/')) {
+    if (buffer.length === 0) {
+      return NextResponse.json({ error: 'File buffer is empty' }, { status: 400 });
+    }
+
+    let contentType = file.type || 'application/octet-stream';
+    let baseName = file.name.replace(/[^a-zA-Z0-9.-]/g, '');
+
+    if (file.type.startsWith('image/') && !file.type.includes('svg') && !file.type.includes('gif')) {
       try {
         buffer = await sharp(buffer)
-          .webp({ quality: 70 })
+          .webp({ quality: 75 })
           .toBuffer();
+        contentType = 'image/webp';
+        baseName = baseName.replace(/\.[^/.]+$/, '.webp');
       } catch (sharpError) {
-        console.warn('Sharp compression failed, proceeding with original buffer', sharpError);
+        console.warn('Sharp compression skipped, proceeding with original:', sharpError);
       }
     }
+
+    // Store in media/ prefix
+    const fileName = `media/${crypto.randomUUID()}-${baseName}`;
 
     await r2.send(new PutObjectCommand({
       Bucket: bucketName,
       Key: fileName,
       Body: buffer,
-      ContentType: file.type,
+      ContentType: contentType,
       CacheControl: 'public, max-age=31536000',
     }));
 
