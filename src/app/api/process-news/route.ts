@@ -104,12 +104,15 @@ CRITICAL RULES:
         temperature: 1,
         top_p: 0.95,
         max_tokens: 16384,
+        reasoning_budget: 16384,
+        chat_template_kwargs: { "enable_thinking": true },
         stream: true
       } as any);
 
       let fullContent = '';
       for await (const chunk of completion as any) {
         if (!chunk.choices || chunk.choices.length === 0) continue;
+        const reasoning = chunk.choices[0]?.delta?.reasoning_content;
         const content = chunk.choices[0]?.delta?.content;
         if (content) {
           fullContent += content;
