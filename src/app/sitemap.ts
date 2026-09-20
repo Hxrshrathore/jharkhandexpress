@@ -87,7 +87,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const articles = await sql`
       SELECT slug, published_at, created_at 
-      FROM truth_articles 
+      FROM articles 
       WHERE (expires_at IS NULL OR expires_at > NOW())
       ORDER BY published_at DESC 
       LIMIT 5000

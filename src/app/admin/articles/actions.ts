@@ -17,7 +17,7 @@ export async function deleteArticleAction(id: string) {
   try {
     // 1. Fetch the article to get media URLs and Youtube ID
     const res = await sql`
-      SELECT featured_image, gallery, youtube_video_id, video_gallery FROM truth_articles WHERE id = ${id} OR id::text = ${id} OR guid::text = ${id} LIMIT 1
+      SELECT featured_image, gallery, youtube_video_id, video_gallery FROM articles WHERE id = ${id} OR id::text = ${id} OR guid::text = ${id} LIMIT 1
     `;
 
     if (!res || res.length === 0) {
@@ -104,7 +104,7 @@ export async function deleteArticleAction(id: string) {
     }
 
     // 4. Delete from Database
-    await sql`DELETE FROM truth_articles WHERE id = ${id} OR id::text = ${id} OR guid::text = ${id}`;
+    await sql`DELETE FROM articles WHERE id = ${id} OR id::text = ${id} OR guid::text = ${id}`;
 
     // 5. Revalidate Paths
     revalidatePath('/');

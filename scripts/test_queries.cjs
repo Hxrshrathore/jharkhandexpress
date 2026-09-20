@@ -27,11 +27,11 @@ async function runTests() {
     if (!res || res.length === 0) throw new Error('Proxy check returned no rows');
   });
 
-  // 2. truth_articles queries (db.ts)
-  await testQuery('truth_articles homepage limit 10', async () => {
+  // 2. articles queries (db.ts)
+  await testQuery('articles homepage limit 10', async () => {
     const res = await sql`
       SELECT id, guid, title, slug, excerpt, content_html, featured_image, featured_video, featured_video_timestamp, gallery, video_gallery, categories, tags, published_at, author, youtube_video_id, expires_at 
-      FROM truth_articles 
+      FROM articles 
       WHERE (expires_at IS NULL OR expires_at > NOW()) 
       ORDER BY published_at DESC LIMIT 10
     `;
@@ -39,10 +39,10 @@ async function runTests() {
   });
 
   // 3. unnest(categories) query (db.ts)
-  await testQuery('truth_articles category search with unnest(categories)', async () => {
+  await testQuery('articles category search with unnest(categories)', async () => {
     const res = await sql`
       SELECT id, guid, title, slug, excerpt, content_html, featured_image, featured_video, featured_video_timestamp, gallery, video_gallery, categories, tags, published_at, author, youtube_video_id, expires_at 
-      FROM truth_articles 
+      FROM articles 
       WHERE (expires_at IS NULL OR expires_at > NOW()) 
       AND EXISTS (
         SELECT 1 FROM unnest(categories) AS cat 

@@ -73,7 +73,7 @@ export async function getSiteSettings(simulatedDate?: Date, forceCampaignId?: nu
   }
 }
 
-// We only need read access to rss_items from truth_articles
+// We only need read access to rss_items from articles
 export async function getRssItems(limit: number = 20, beforeDate?: Date) {
   noStore();
   try {
@@ -86,7 +86,7 @@ export async function getRssItems(limit: number = 20, beforeDate?: Date) {
       if (beforeDateStr) {
         return await sql`
           SELECT id, guid, title, slug, excerpt, content_html, featured_image, featured_video, featured_video_timestamp, gallery, video_gallery, categories, tags, published_at, author, youtube_video_id, expires_at 
-          FROM truth_articles
+          FROM articles
           WHERE published_at <= ${cutoffDate} AND published_at <= ${beforeDateStr} AND (expires_at IS NULL OR expires_at > NOW())
           ORDER BY published_at DESC 
           LIMIT ${limit}
@@ -94,7 +94,7 @@ export async function getRssItems(limit: number = 20, beforeDate?: Date) {
       } else {
         return await sql`
           SELECT id, guid, title, slug, excerpt, content_html, featured_image, featured_video, featured_video_timestamp, gallery, video_gallery, categories, tags, published_at, author, youtube_video_id, expires_at 
-          FROM truth_articles
+          FROM articles
           WHERE published_at <= ${cutoffDate} AND (expires_at IS NULL OR expires_at > NOW())
           ORDER BY published_at DESC 
           LIMIT ${limit}
@@ -104,7 +104,7 @@ export async function getRssItems(limit: number = 20, beforeDate?: Date) {
       if (beforeDateStr) {
         return await sql`
           SELECT id, guid, title, slug, excerpt, content_html, featured_image, featured_video, featured_video_timestamp, gallery, video_gallery, categories, tags, published_at, author, youtube_video_id, expires_at 
-          FROM truth_articles
+          FROM articles
           WHERE published_at <= ${beforeDateStr} AND (expires_at IS NULL OR expires_at > NOW())
           ORDER BY published_at DESC 
           LIMIT ${limit}
@@ -112,7 +112,7 @@ export async function getRssItems(limit: number = 20, beforeDate?: Date) {
       } else {
         return await sql`
           SELECT id, guid, title, slug, excerpt, content_html, featured_image, featured_video, featured_video_timestamp, gallery, video_gallery, categories, tags, published_at, author, youtube_video_id, expires_at 
-          FROM truth_articles
+          FROM articles
           WHERE (expires_at IS NULL OR expires_at > NOW())
           ORDER BY published_at DESC 
           LIMIT ${limit}
@@ -136,7 +136,7 @@ function calculateReadingTime(html: string): string {
 }
 
 /**
- * Shared row mapper — converts a raw DB row from truth_articles into an Article.
+ * Shared row mapper — converts a raw DB row from articles into an Article.
  * Used by getMappedArticles, getArticleByIdOrSlug, and getArticlesByCategory
  * to avoid 3× duplication.
  */
@@ -199,14 +199,14 @@ export async function getArticleByIdOrSlug(idOrSlug: string, isAdmin: boolean = 
     if (cutoffDate) {
       res = await sql`
         SELECT id, guid, title, slug, excerpt, content_html, featured_image, featured_video, featured_video_timestamp, gallery, video_gallery, categories, tags, published_at, author, youtube_video_id, expires_at 
-        FROM truth_articles
+        FROM articles
         WHERE published_at <= ${cutoffDate} AND (slug = ${idOrSlug} OR guid::text = ${idOrSlug} OR id::text = ${idOrSlug}) AND (expires_at IS NULL OR expires_at > NOW())
         LIMIT 1
       `;
     } else {
       res = await sql`
         SELECT id, guid, title, slug, excerpt, content_html, featured_image, featured_video, featured_video_timestamp, gallery, video_gallery, categories, tags, published_at, author, youtube_video_id, expires_at 
-        FROM truth_articles
+        FROM articles
         WHERE (slug = ${idOrSlug} OR guid::text = ${idOrSlug} OR id::text = ${idOrSlug}) AND (expires_at IS NULL OR expires_at > NOW())
         LIMIT 1
       `;
@@ -246,7 +246,7 @@ export async function getArticlesByCategory(categorySlug: string, limit: number 
         SELECT id, guid, title, slug, excerpt, content_html, featured_image, featured_video,
                featured_video_timestamp, gallery, video_gallery, categories, tags,
                published_at, author, youtube_video_id, expires_at
-        FROM truth_articles
+        FROM articles
         WHERE published_at <= ${cutoffDate}
           AND (expires_at IS NULL OR expires_at > NOW())
           AND EXISTS (
@@ -262,7 +262,7 @@ export async function getArticlesByCategory(categorySlug: string, limit: number 
         SELECT id, guid, title, slug, excerpt, content_html, featured_image, featured_video,
                featured_video_timestamp, gallery, video_gallery, categories, tags,
                published_at, author, youtube_video_id, expires_at
-        FROM truth_articles
+        FROM articles
         WHERE (expires_at IS NULL OR expires_at > NOW())
           AND EXISTS (
             SELECT 1 FROM unnest(categories) AS cat

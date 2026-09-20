@@ -119,7 +119,7 @@ export async function editFeedItem(prevState: FormState, formData: FormData): Pr
     }
 
     await sql`
-      UPDATE truth_articles SET
+      UPDATE articles SET
         title = ${title},
         slug = ${slug},
         excerpt = ${excerpt},

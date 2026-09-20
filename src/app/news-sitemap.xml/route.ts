@@ -22,7 +22,7 @@ export async function GET() {
 
     const articles = await sql`
       SELECT slug, title, published_at, categories 
-      FROM truth_articles 
+      FROM articles 
       WHERE published_at >= ${fortyEightHoursAgo}
       AND (expires_at IS NULL OR expires_at > NOW())
       ORDER BY published_at DESC 

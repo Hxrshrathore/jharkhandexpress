@@ -98,7 +98,7 @@ async function syncDatabase() {
   }
 
   console.log('\n--- VERIFYING ARTICLE AND ROW COUNTS ---');
-  const tables = ['truth_articles', 'categories', 'site_settings', 'ad_campaigns', 'site_ads', 'youtube_accounts', 'push_subscriptions', 'rss_sources', 'article_translations'];
+  const tables = ['articles', 'categories', 'site_settings', 'ad_campaigns', 'site_ads', 'youtube_accounts', 'push_subscriptions', 'rss_sources', 'article_translations'];
   for (const t of tables) {
     const countRes = await sql.query(`SELECT count(*) FROM ${t}`);
     console.log(`${t}: ${(countRes.rows || countRes)[0].count} rows`);

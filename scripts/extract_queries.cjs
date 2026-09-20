@@ -31,7 +31,7 @@ for (const f of files) {
     const relFile = path.relative(path.join(__dirname, '..'), f);
     
     // Find which table is targeted
-    const tables = ['youtube_accounts', 'site_settings', 'truth_articles', 'categories', 'site_ads', 'ad_campaigns', 'article_translations', 'push_subscriptions', 'rss_sources'];
+    const tables = ['youtube_accounts', 'site_settings', 'articles', 'categories', 'site_ads', 'ad_campaigns', 'article_translations', 'push_subscriptions', 'rss_sources'];
     for (const t of tables) {
       if (new RegExp(`\\b${t}\\b`, 'i').test(rawSql)) {
         if (!tableQueries[t]) tableQueries[t] = [];

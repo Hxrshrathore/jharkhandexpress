@@ -21,7 +21,7 @@ function getFiles(dir) {
 const files = getFiles(path.join(__dirname, '../src'));
 const sqlRegex = /sql`([\s\S]*?)`/g;
 
-const tables = ['youtube_accounts', 'truth_articles', 'categories', 'push_subscriptions', 'site_settings', 'rss_sources'];
+const tables = ['youtube_accounts', 'articles', 'categories', 'push_subscriptions', 'site_settings', 'rss_sources'];
 
 for (const t of tables) {
   console.log(`\n=================== TABLE: ${t} ===================`);

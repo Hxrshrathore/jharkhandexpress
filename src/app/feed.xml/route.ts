@@ -19,7 +19,7 @@ export async function GET() {
   try {
     const articles = await sql`
       SELECT id, guid, title, slug, excerpt, content_html, featured_image, published_at, categories, author 
-      FROM truth_articles 
+      FROM articles 
       WHERE (expires_at IS NULL OR expires_at > NOW())
       ORDER BY published_at DESC 
       LIMIT 50

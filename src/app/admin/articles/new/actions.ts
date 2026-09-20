@@ -24,7 +24,7 @@ export async function addFeedItem(prevState: FormState, formData: FormData): Pro
   // CM-02: Duplication Prevention
   try {
     const duplicateCheck = await sql`
-      SELECT id FROM truth_articles
+      SELECT id FROM articles
       WHERE (canonical_url = ${canonical_url} AND canonical_url != '')
          OR title = ${title}
       LIMIT 1
@@ -62,10 +62,10 @@ export async function addFeedItem(prevState: FormState, formData: FormData): Pro
     let isUnique = false;
     let counter = 1;
 
-    // Ensure global uniqueness across truth_articles
+    // Ensure global uniqueness across articles
     while (!isUnique) {
       const existing = await sql`
-        SELECT slug FROM truth_articles WHERE slug = ${slug}
+        SELECT slug FROM articles WHERE slug = ${slug}
         LIMIT 1
       `;
       
@@ -160,7 +160,7 @@ export async function addFeedItem(prevState: FormState, formData: FormData): Pro
     }
 
     await sql`
-      INSERT INTO truth_articles (
+      INSERT INTO articles (
         guid, title, slug, excerpt, content_html, featured_image, featured_video, gallery, video_gallery,
         categories, tags, author, canonical_url, seo_title, meta_description, schema, published_at,
         youtube_video_id, youtube_status, expires_at, featured_video_timestamp

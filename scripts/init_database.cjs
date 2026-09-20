@@ -62,9 +62,9 @@ async function init() {
   }
 
   // 3. Truth Articles table
-  console.log('3. Creating truth_articles table...');
+  console.log('3. Creating articles table...');
   await sql.query(`
-    CREATE TABLE IF NOT EXISTS truth_articles (
+    CREATE TABLE IF NOT EXISTS articles (
       id SERIAL PRIMARY KEY,
       guid TEXT UNIQUE NOT NULL,
       title TEXT NOT NULL,
@@ -93,9 +93,9 @@ async function init() {
   `);
 
   // Add indexes for fast lookup
-  await sql.query(`CREATE INDEX IF NOT EXISTS idx_articles_slug ON truth_articles (slug);`);
-  await sql.query(`CREATE INDEX IF NOT EXISTS idx_articles_published_at ON truth_articles (published_at DESC);`);
-  await sql.query(`CREATE INDEX IF NOT EXISTS idx_articles_guid ON truth_articles (guid);`);
+  await sql.query(`CREATE INDEX IF NOT EXISTS idx_articles_slug ON articles (slug);`);
+  await sql.query(`CREATE INDEX IF NOT EXISTS idx_articles_published_at ON articles (published_at DESC);`);
+  await sql.query(`CREATE INDEX IF NOT EXISTS idx_articles_guid ON articles (guid);`);
 
   // 4. Site Settings table
   console.log('4. Creating site_settings table...');
@@ -191,13 +191,13 @@ async function init() {
   `);
 
   // 10. Check if we should restore backup articles
-  const countRes = await sql.query(`SELECT COUNT(*) as count FROM truth_articles;`);
+  const countRes = await sql.query(`SELECT COUNT(*) as count FROM articles;`);
   const currentCount = parseInt(countRes[0].count, 10);
   console.log(`Current article count in database: ${currentCount}`);
 
-  const backupPath = path.join(__dirname, '..', 'backup', 'truth_articles.json');
+  const backupPath = path.join(__dirname, '..', 'backup', 'articles.json');
   if (currentCount === 0 && fs.existsSync(backupPath)) {
-    console.log('Importing articles from backup/truth_articles.json...');
+    console.log('Importing articles from backup/articles.json...');
     const articles = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
     console.log(`Found ${articles.length} articles to import.`);
 
@@ -205,7 +205,7 @@ async function init() {
     for (const a of articles) {
       try {
         await sql.query(`
-          INSERT INTO truth_articles (
+          INSERT INTO articles (
             guid, title, slug, excerpt, content_html, featured_image, featured_video,
             gallery, video_gallery, categories, tags, author, canonical_url,
             seo_title, meta_description, schema, published_at, youtube_video_id,
@@ -245,7 +245,7 @@ async function init() {
         console.warn(`Failed to insert article ${a.id} (${a.title}):`, err.message);
       }
     }
-    console.log(`Successfully imported ${imported} articles into truth_articles.`);
+    console.log(`Successfully imported ${imported} articles into articles.`);
   }
 
   // Check and import backup ad campaigns and ads
