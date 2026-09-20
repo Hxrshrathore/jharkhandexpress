@@ -236,3 +236,28 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.56 0.021 213.5);
 }
+
+/* Article Reading Body Font Sizing & Typography */
+.article-body-content {
+  font-size: var(--article-font-size, 1.05rem) !important;
+  line-height: var(--article-line-height, 1.8) !important;
+}
+
+.article-body-content p,
+.article-body-content span,
+.article-body-content div:not([data-ad-placement]),
+.article-body-content li,
+.article-body-content strong,
+.article-body-content em,
+.article-body-content b,
+.article-body-content i {
+  font-size: var(--article-font-size, 1.05rem) !important;
+  line-height: var(--article-line-height, 1.8) !important;
+}
+
+.article-body-content h1,
+.article-body-content h2,
+.article-body-content h3,
+.article-body-content h4 {
+  line-height: 1.35 !important;
+}

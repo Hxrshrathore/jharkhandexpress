@@ -417,6 +417,7 @@ export default function ArticleView({
               onBack={onBack}
               globalSettings={globalSettings}
               fontSize={fontSize}
+              onFontSizeChange={setFontSize}
               hideDuplicateBar={true}
               onTopicClick={(slug) => {
                 onTopicClick?.(slug);

@@ -66,6 +66,7 @@ interface SingleArticleViewProps {
   onBack?: () => void;
   globalSettings?: any;
   fontSize?: 'normal' | 'large' | 'xlarge';
+  onFontSizeChange?: (size: 'normal' | 'large' | 'xlarge') => void;
   hideDuplicateBar?: boolean;
   onTopicClick?: (topic: string) => void;
 }
@@ -144,14 +145,21 @@ export default function SingleArticleView({
   onBack, 
   globalSettings,
   fontSize: propFontSize,
+  onFontSizeChange,
   hideDuplicateBar = false,
   onTopicClick
 }: SingleArticleViewProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [internalFontSize, setInternalFontSize] = useState<'normal' | 'large' | 'xlarge'>('normal');
-  const fontSize = propFontSize || internalFontSize;
-  const setFontSize = setInternalFontSize;
+  const [internalFontSize, setInternalFontSize] = useState<'normal' | 'large' | 'xlarge'>(propFontSize || 'normal');
+
+  useEffect(() => {
+    if (propFontSize) {
+      setInternalFontSize(propFontSize);
+    }
+  }, [propFontSize]);
+
+  const currentFontSize = propFontSize || internalFontSize;
   const [isNewsletterSubscribed, setIsNewsletterSubscribed] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const containerRef = useRef<HTMLElement>(null);
@@ -226,9 +234,10 @@ export default function SingleArticleView({
   };
 
   const cycleFontSize = () => {
-    if (fontSize === 'normal') setFontSize('large');
-    else if (fontSize === 'large') setFontSize('xlarge');
-    else setFontSize('normal');
+    const nextSize: 'normal' | 'large' | 'xlarge' = 
+      currentFontSize === 'normal' ? 'large' : currentFontSize === 'large' ? 'xlarge' : 'normal';
+    setInternalFontSize(nextSize);
+    onFontSizeChange?.(nextSize);
   };
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
@@ -404,11 +413,10 @@ export default function SingleArticleView({
 
   const googleNewsUrl = globalSettings?.google_news_url || '/api/google-news';
 
-  const fontClass = fontSize === 'large' 
-    ? 'text-lg sm:text-[21px] leading-[1.85]' 
-    : fontSize === 'xlarge' 
-    ? 'text-xl sm:text-[23px] leading-[1.95]' 
-    : 'text-base sm:text-[18px] leading-[1.8]';
+  const fontSizeStyle: React.CSSProperties = {
+    ['--article-font-size' as any]: currentFontSize === 'xlarge' ? '1.38rem' : currentFontSize === 'large' ? '1.2rem' : '1.05rem',
+    ['--article-line-height' as any]: currentFontSize === 'xlarge' ? '2.1' : currentFontSize === 'large' ? '1.95' : '1.8',
+  };
 
   return (
     <article 
@@ -475,7 +483,7 @@ export default function SingleArticleView({
                   >
                     <Type className="w-4 h-4" />
                     <span className="text-[10px] uppercase font-mono font-bold hidden md:inline">
-                      {fontSize === 'normal' ? '1x' : fontSize === 'large' ? '1.2x' : '1.4x'}
+                      {currentFontSize === 'normal' ? '1x' : currentFontSize === 'large' ? '1.2x' : '1.4x'}
                     </span>
                   </button>
                 </TooltipTrigger>
@@ -720,14 +728,22 @@ export default function SingleArticleView({
                   </span>
                 </div>
 
-                <p className="text-slate-800 font-sans leading-relaxed text-sm sm:text-base font-medium">
+                <p 
+                  className="text-slate-800 font-sans leading-relaxed font-medium transition-[font-size] duration-150"
+                  style={{
+                    fontSize: currentFontSize === 'xlarge' ? '1.18rem' : currentFontSize === 'large' ? '1.08rem' : '0.98rem'
+                  }}
+                >
                   {article.aiSummary || article.excerpt}
                 </p>
               </div>
             )}
 
             {/* ── Article Content Body ── */}
-            <div className={`prose max-w-none font-serif text-slate-800 space-y-6 ${fontClass}`}>
+            <div 
+              className="article-body-content prose max-w-none font-serif text-slate-800 space-y-6 transition-[font-size,line-height] duration-150"
+              style={fontSizeStyle}
+            >
               {renderContentWithMedia()}
             </div>
 
@@ -740,10 +756,10 @@ export default function SingleArticleView({
                   </span>
                   {article.tags.map((tag, idx) => {
                     const cleanTag = tag.trim().replace(/^#/, '');
-                    const slug = cleanTag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                    const slug = cleanTag.toLowerCase().replace(/[\s\-_]+/g, '-').replace(/[^\w\u0900-\u097F-]/g, '').replace(/^-+|-+$/g, '') || encodeURIComponent(cleanTag) || cleanTag;
                     return (
                       <a 
-                        key={idx} 
+                        key={`tag-${idx}-${slug}`} 
                         href={`/?tag=${encodeURIComponent(slug)}`}
                         onClick={(e) => {
                           if (onTopicClick) {

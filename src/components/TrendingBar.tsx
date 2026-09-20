@@ -81,37 +81,64 @@ export default function TrendingBar({
       // 2. Its dynamic velocity score is >= 4 and significantly higher than average.
       const hotScoreThreshold = Math.max(4, avgScore * 1.3);
 
+      const slugify = (str: string) => {
+        const cleaned = str
+          .trim()
+          .toLowerCase()
+          .replace(/[\s\-_]+/g, '-')
+          .replace(/[^\w\u0900-\u097F-]/g, '')
+          .replace(/^-+|-+$/g, '');
+        return cleaned || encodeURIComponent(str.trim()) || str.trim();
+      };
+
       let hotCount = 0;
-      const dynamicTopics = sortedTags.map(([label, stat]) => {
+      const seenSlugs = new Set<string>();
+      const dynamicTopics: { label: string; slug: string; hot?: boolean }[] = [];
+
+      sortedTags.forEach(([label, stat]) => {
+        const slug = slugify(label);
+        if (!slug || seenSlugs.has(slug)) return;
+        seenSlugs.add(slug);
+
         const isSurging = stat.isTrending || (stat.score >= hotScoreThreshold && stat.count >= 1);
         let hot = false;
         if (isSurging && hotCount < 4) {
           hot = true;
           hotCount++;
         }
-        return {
+        dynamicTopics.push({
           label,
-          slug: label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+          slug,
           hot
-        };
+        });
       });
 
-      // Complement with regional topics if total tags are under 30 (fallback topics never have hot = true)
-      const existingSlugs = new Set(dynamicTopics.map(t => t.slug));
-      const filler = DEFAULT_POPULAR_TOPICS
-        .filter(t => !existingSlugs.has(t.toLowerCase().replace(/[^a-z0-9]+/g, '-')))
-        .map(label => ({
-          label,
-          slug: label.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          hot: false
-        }));
+      // Complement with regional topics if total tags are under 35
+      const filler: { label: string; slug: string; hot?: boolean }[] = [];
+      DEFAULT_POPULAR_TOPICS.forEach(label => {
+        const slug = slugify(label);
+        if (!seenSlugs.has(slug)) {
+          seenSlugs.add(slug);
+          filler.push({ label, slug, hot: false });
+        }
+      });
 
       const finalTopics = [...dynamicTopics, ...filler].slice(0, 35);
       setTrendingTopics(finalTopics);
     } else {
-      const fallbackTopics = DEFAULT_POPULAR_TOPICS.map((label) => ({
+      const slugify = (str: string) => {
+        const cleaned = str
+          .trim()
+          .toLowerCase()
+          .replace(/[\s\-_]+/g, '-')
+          .replace(/[^\w\u0900-\u097F-]/g, '')
+          .replace(/^-+|-+$/g, '');
+        return cleaned || encodeURIComponent(str.trim()) || str.trim();
+      };
+
+      const fallbackTopics = DEFAULT_POPULAR_TOPICS.map((label, idx) => ({
         label,
-        slug: label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+        slug: slugify(label) || `popular-${idx}`,
         hot: false
       }));
       setTrendingTopics(fallbackTopics);
@@ -136,11 +163,12 @@ export default function TrendingBar({
 
         {/* Center & Right: High-Density Trending Topics Strip */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 flex-1 min-w-0 scroll-smooth">
-          {trendingTopics.map((topic) => {
+          {trendingTopics.map((topic, idx) => {
             const isSelected = selectedTopic === topic.slug;
+            const itemKey = topic.slug ? `${topic.slug}-${idx}` : `trending-topic-${idx}`;
             return (
               <button
-                key={topic.slug}
+                key={itemKey}
                 onClick={() => onTopicClick?.(isSelected ? null : topic.slug)}
                 className={`px-3 py-1 rounded-full text-xs font-semibold tracking-tight transition-all shrink-0 flex items-center gap-1.5 whitespace-nowrap active:scale-95 cursor-pointer ${
                   isSelected
