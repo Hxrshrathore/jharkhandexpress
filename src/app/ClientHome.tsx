@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { sendGAEvent } from '@next/third-parties/google';
-import Header from '../components/Header';
+import Header, { EditionType } from '../components/Header';
 import Hero from '../components/home/Hero';
 import Ticker from '../components/home/Ticker';
 import CategorySection from '../components/home/CategorySection';
@@ -59,7 +59,19 @@ function SavedArticleCard({ article, onClick }: { article: any, onClick: () => v
   );
 }
 
-export default function ClientHome({ initialArticleSlug, initialCategory, dbArticles, globalSettings }: { initialArticleSlug?: string, initialCategory?: string, dbArticles: Article[], globalSettings?: any }) {
+export default function ClientHome({ 
+  initialArticleSlug, 
+  initialCategory, 
+  initialTopic,
+  dbArticles, 
+  globalSettings 
+}: { 
+  initialArticleSlug?: string, 
+  initialCategory?: string, 
+  initialTopic?: string,
+  dbArticles: Article[], 
+  globalSettings?: any 
+}) {
   const [currentView, setCurrentView] = useState<'home' | 'article' | 'saved'>(initialArticleSlug ? 'article' : 'home');
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   
@@ -67,6 +79,7 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
   const [heroIndex, setHeroIndex] = useState(0);
   const [readingArticle, setReadingArticle] = useState<Article | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory || null);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(initialTopic ? initialTopic.toLowerCase().replace(/^#/, '') : null);
   const [isNotificationVisible, setIsNotificationVisible] = useState(false);
   const [articlesViewed, setArticlesViewed] = useState(0);
   const [simulatedDate, setSimulatedDate] = useState<string>(globalSettings?.simulated_date || new Date().toISOString().split('T')[0]);
@@ -80,6 +93,39 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
     }
     return dbArticles;
   });
+
+  // Sync when initialCategory or initialTopic changes
+  useEffect(() => {
+    if (initialCategory) setSelectedCategory(initialCategory);
+  }, [initialCategory]);
+
+  useEffect(() => {
+    if (initialTopic) setSelectedTopic(initialTopic.toLowerCase().replace(/^#/, ''));
+  }, [initialTopic]);
+
+  // Read URL query params on mount for direct deep links (?edition=, ?tag=, ?category=, ?topic=)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const tag = params.get('tag') || params.get('topic');
+    const cat = params.get('category');
+    const edition = params.get('edition');
+
+    if (edition) {
+      const edLower = edition.toLowerCase();
+      if (edLower === 'national') setSelectedCategory('National');
+      else if (edLower === 'global' || edLower === 'world') setSelectedCategory('Global');
+      else if (edLower === 'jharkhand') setSelectedCategory('Jharkhand');
+      setSelectedTopic(null);
+    } else if (cat) {
+      setSelectedCategory(cat);
+      if (!tag) setSelectedTopic(null);
+    }
+
+    if (tag) {
+      setSelectedTopic(tag.toLowerCase().replace(/^#/, ''));
+    }
+  }, []);
 
   useEffect(() => {
     if (simulatedDate && simulatedDate !== '') {
@@ -96,7 +142,6 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
 
   const [dateFilter, setDateFilter] = useState<DateFilter>('today');
   const [customArchiveDate, setCustomArchiveDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
 
   // Modals
   const [isSubscribeOpen, setIsSubscribeOpen] = useState(false);
@@ -298,6 +343,7 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
 
   const handleCategoryClick = (category: string | null) => {
     setSelectedCategory(category);
+    setSelectedTopic(null);
     setCurrentView('home');
     setSelectedArticle(null);
     setReadingArticle(null);
@@ -308,46 +354,125 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     const waybackPrefix = getCleanWaybackBase();
-    if (waybackPrefix) {
-      const search = window.location.search || '';
-      const homeUrl = `${waybackPrefix}${search}`;
-      if (typeof window !== 'undefined' && decodeURIComponent(window.location.pathname + window.location.search) !== homeUrl) {
+    if (typeof window !== 'undefined') {
+      if (category) {
+        const catUrl = waybackPrefix 
+          ? `${waybackPrefix}?category=${encodeURIComponent(category)}` 
+          : `/?category=${encodeURIComponent(category)}`;
+        window.history.pushState({ view: 'home', category }, '', catUrl);
+      } else {
+        const homeUrl = waybackPrefix ? `${waybackPrefix}` : '/';
         window.history.pushState({ view: 'home' }, '', homeUrl);
       }
-    } else if (typeof window !== 'undefined' && window.location.pathname !== '/') {
-      window.history.pushState({ view: 'home' }, '', '/');
     }
   };
 
   const handleTopicClick = (slug: string | null) => {
     setSelectedTopic(slug);
+    setSelectedCategory(null);
     setCurrentView('home');
+    setSelectedArticle(null);
+    setReadingArticle(null);
     if (slug) {
       sendGAEvent('event', 'topic_click', { topic_slug: slug });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    const waybackPrefix = getCleanWaybackBase();
+    if (typeof window !== 'undefined') {
+      if (slug) {
+        const topicUrl = waybackPrefix 
+          ? `${waybackPrefix}?tag=${encodeURIComponent(slug)}` 
+          : `/?tag=${encodeURIComponent(slug)}`;
+        window.history.pushState({ view: 'home', topic: slug }, '', topicUrl);
+      } else {
+        const homeUrl = waybackPrefix ? `${waybackPrefix}` : '/';
+        window.history.pushState({ view: 'home' }, '', homeUrl);
+      }
+    }
   };
 
-  // Derive display articles based on selectedTopic and selectedCategory
+  const handleEditionChange = (edition: EditionType | null) => {
+    setCurrentView('home');
+    setSelectedArticle(null);
+    setReadingArticle(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    const waybackPrefix = getCleanWaybackBase();
+
+    if (!edition) {
+      setSelectedCategory(null);
+      setSelectedTopic(null);
+      if (typeof window !== 'undefined') {
+        const homeUrl = waybackPrefix ? `${waybackPrefix}` : '/';
+        window.history.pushState({ view: 'home' }, '', homeUrl);
+      }
+      return;
+    }
+
+    setSelectedTopic(null);
+    let targetCat = 'Jharkhand';
+    if (edition === 'national') targetCat = 'National';
+    else if (edition === 'global') targetCat = 'Global';
+
+    // If already active in this exact edition, toggle off to All Top Stories
+    if (selectedCategory?.toLowerCase() === targetCat.toLowerCase()) {
+      setSelectedCategory(null);
+      if (typeof window !== 'undefined') {
+        const homeUrl = waybackPrefix ? `${waybackPrefix}` : '/';
+        window.history.pushState({ view: 'home' }, '', homeUrl);
+      }
+    } else {
+      setSelectedCategory(targetCat);
+      if (typeof window !== 'undefined') {
+        const editionUrl = waybackPrefix 
+          ? `${waybackPrefix}?edition=${edition}` 
+          : `/?edition=${edition}`;
+        window.history.pushState({ view: 'home', edition }, '', editionUrl);
+      }
+    }
+  };
+
+  // Derive display articles dynamically based on selectedTopic and selectedCategory
   const displayArticles = allArticles.filter(a => {
     let match = true;
     if (selectedTopic) {
       const tags = a.tags || [];
-      const topicMatch = tags.some(t => t.toLowerCase().replace(/\s+/g, '-') === selectedTopic) || 
-                         a.title.toLowerCase().includes(selectedTopic.replace(/-/g, ' '));
+      const topicLower = selectedTopic.toLowerCase().replace(/^#/, '');
+      const topicWords = topicLower.replace(/-/g, ' ');
+      const topicMatch = 
+        tags.some(t => {
+          const cleanT = t.toLowerCase().replace(/^#/, '').replace(/\s+/g, '-');
+          return cleanT === topicLower || cleanT.includes(topicLower) || topicLower.includes(cleanT);
+        }) || 
+        a.title.toLowerCase().includes(topicWords) ||
+        (a.category && a.category.toLowerCase().includes(topicWords)) ||
+        (a.categories && a.categories.some(c => c.toLowerCase().includes(topicWords)));
+
       if (!topicMatch) match = false;
     }
+
     if (match && selectedCategory) {
       const allCats = [a.category, ...(a.categories || [])].join(' ').toLowerCase();
+      const allTags = (a.tags || []).join(' ').toLowerCase();
+      const textScope = `${allCats} ${allTags} ${a.title.toLowerCase()} ${a.excerpt ? a.excerpt.toLowerCase() : ''}`;
       
-      if (selectedCategory === 'World Affairs' || selectedCategory === 'World') {
-        if (!['world', 'international', 'global', 'foreign', 'affairs'].some(k => allCats.includes(k))) match = false;
-      } else if (selectedCategory === 'States' || selectedCategory === 'States & Regional') {
-        if (!['state', 'jharkhand', 'odisha', 'regional', 'local', 'bihar', 'up', 'maharashtra', 'uttar pradesh', 'delhi', 'rajsthan', 'west bengal', 'madhya pradesh', 'karnatka', 'manipur', 'telangana', 'haryana', 'tamil nadu'].some(k => allCats.includes(k))) match = false;
-      } else if (selectedCategory === 'Nation' || selectedCategory === 'National Desk') {
-        if (!['nation', 'india', 'national', 'politics', 'government', 'news'].some(k => allCats.includes(k))) match = false;
+      const catLower = selectedCategory.toLowerCase().trim();
+
+      if (catLower === 'global' || catLower === 'world' || catLower === 'world affairs' || catLower === 'international') {
+        const isGlobal = ['world', 'international', 'global', 'foreign', 'affairs', 'diplomacy', 'un', 'geopolitics'].some(k => textScope.includes(k));
+        if (!isGlobal) match = false;
+      } else if (catLower === 'national' || catLower === 'nation' || catLower === 'national desk' || catLower === 'india') {
+        const isNational = ['nation', 'national', 'india', 'politics', 'government', 'news', 'parliament', 'delhi', 'bharat', 'central'].some(k => textScope.includes(k));
+        if (!isNational) match = false;
+      } else if (catLower === 'jharkhand' || catLower === 'jharkhand edition') {
+        const isJharkhand = ['jharkhand', 'ranchi', 'jamshedpur', 'dhanbad', 'bokaro', 'hazaribagh', 'deoghar', 'chaibasa', 'dumka', 'giridih', 'palamu', 'ramgarh', 'koderma', 'state', 'regional'].some(k => textScope.includes(k));
+        if (!isJharkhand) match = false;
+      } else if (catLower === 'states' || catLower === 'states & regional') {
+        if (!['state', 'jharkhand', 'odisha', 'regional', 'local', 'bihar', 'up', 'maharashtra', 'uttar pradesh', 'delhi', 'rajsthan', 'west bengal', 'madhya pradesh', 'karnatka', 'manipur', 'telangana', 'haryana', 'tamil nadu'].some(k => textScope.includes(k))) {
+          match = false;
+        }
       } else {
-        if (!allCats.includes(selectedCategory.toLowerCase())) match = false;
+        if (!allCats.includes(catLower)) match = false;
       }
     }
     return match;
@@ -406,6 +531,9 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
         <Header 
           onCategoryClick={handleCategoryClick} 
           activeCategory={selectedCategory}
+          activeTopic={selectedTopic}
+          onTopicClick={handleTopicClick}
+          onEditionChange={handleEditionChange}
           onSubscribeClick={() => {
             sendGAEvent('event', 'subscribe_click', { source: 'header' });
             setIsSubscribeOpen(true);
@@ -491,13 +619,19 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
                     {/* Left Column: Hard News & Features */}
                     <div className="w-full lg:w-8/12 xl:w-3/4 flex flex-col">
                       
-                      {selectedCategory && (
+                      {/* Active Filter / Edition Banner */}
+                      {(selectedCategory || selectedTopic) && (
                         <div className="mb-8 p-5 rounded-2xl bg-slate-100/90 border border-slate-200/90 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <span className="w-3 h-3 rounded-full bg-[#E63946] animate-pulse" />
                             <div>
                               <h2 className="text-xl font-serif font-bold text-slate-950">
-                                Desk: {selectedCategory}
+                                {selectedCategory 
+                                  ? (selectedCategory.toLowerCase().includes('jharkhand') ? 'Jharkhand Edition' :
+                                     selectedCategory.toLowerCase().includes('nation') ? 'National Edition' :
+                                     (selectedCategory.toLowerCase().includes('global') || selectedCategory.toLowerCase().includes('world')) ? 'Global Edition' :
+                                     `Desk: ${selectedCategory}`)
+                                  : `Topic: #${selectedTopic?.replace(/-/g, ' ')}`}
                               </h2>
                               <p className="text-xs font-mono text-slate-500 mt-0.5">
                                 Showing {displayArticles.length} stories
@@ -505,7 +639,10 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
                             </div>
                           </div>
                           <button
-                            onClick={() => handleCategoryClick(null)}
+                            onClick={() => {
+                              handleCategoryClick(null);
+                              handleTopicClick(null);
+                            }}
                             className="px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-[#E63946] hover:bg-[#E63946]/10 transition-colors cursor-pointer"
                           >
                             Clear Filter ✕
@@ -513,13 +650,38 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
                         </div>
                       )}
 
-                      {selectedCategory && (
-                        <CategorySection title={`${selectedCategory} Dispatches`} articles={displayArticles} onArticleClick={handleArticleClick} columns={4} badgeColor="#E63946" />
+                      {(selectedCategory || selectedTopic) && (
+                        <CategorySection 
+                          title={selectedCategory 
+                            ? (selectedCategory.toLowerCase().includes('jharkhand') ? 'Jharkhand Edition Dispatches' :
+                               selectedCategory.toLowerCase().includes('nation') ? 'National Edition Dispatches' :
+                               (selectedCategory.toLowerCase().includes('global') || selectedCategory.toLowerCase().includes('world')) ? 'Global Edition Dispatches' :
+                               `${selectedCategory} Dispatches`)
+                            : `#${selectedTopic?.replace(/-/g, ' ')} Dispatches`
+                          } 
+                          articles={displayArticles} 
+                          onArticleClick={handleArticleClick} 
+                          columns={4} 
+                          badgeColor="#E63946" 
+                        />
+                      )}
+
+                      {(selectedCategory || selectedTopic) && displayArticles.length === 0 && (
+                        <div className="p-12 text-center bg-slate-50 rounded-2xl border border-slate-200 my-4">
+                          <p className="font-serif text-lg text-slate-700 font-medium">No stories currently found for this selection.</p>
+                          <p className="text-xs text-slate-500 mt-1">Try exploring other desks or trending topics.</p>
+                          <button
+                            onClick={() => { handleCategoryClick(null); handleTopicClick(null); }}
+                            className="mt-4 px-4 py-2 bg-slate-950 text-white text-xs font-bold rounded-full hover:bg-[#E63946] transition-colors cursor-pointer"
+                          >
+                            View All Top Stories
+                          </button>
+                        </div>
                       )}
 
                       <AdPlacement type="leaderboard" slotId="HP-LEAD-02" simulatedDate={simulatedDate} globalSettings={globalSettings} wrapperClassName="bg-slate-100/70 border border-slate-200/80 rounded-2xl py-3 px-4 flex justify-center mb-8 overflow-hidden" />
 
-                      {!selectedCategory && (
+                      {!selectedCategory && !selectedTopic && (
                         <>
                           <CategorySection title="National Desk" articles={nationArticles} onArticleClick={handleArticleClick} columns={4} badgeColor="#1D4ED8" />
                           <CategorySection title="State Politics & Governance" articles={politicsArticles} onArticleClick={handleArticleClick} columns={4} badgeColor="#E63946" />
@@ -604,6 +766,7 @@ export default function ClientHome({ initialArticleSlug, initialCategory, dbArti
                     sendGAEvent('event', 'search_click', { source: 'article_header' });
                     setIsSearchOpen(true);
                   }}
+                  onTopicClick={handleTopicClick}
                 />
               )}
             </motion.div>

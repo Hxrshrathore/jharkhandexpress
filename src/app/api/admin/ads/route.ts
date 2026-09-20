@@ -117,7 +117,7 @@ export async function PUT(request: Request) {
         try {
           const match = oldAd.image_url.match(/ads\/[^\/?#]+/);
           if (match) {
-            await r2.send(new DeleteObjectCommand({ Bucket: process.env.R2_BUCKET_NAME || 'newsbridge-bucket', Key: match[0] }));
+            await r2.send(new DeleteObjectCommand({ Bucket: process.env.R2_BUCKET_NAME || 'jharkhand-express', Key: match[0] }));
           }
         } catch (e) { console.error('R2 delete failed', e); }
         await sql`DELETE FROM site_ads WHERE id = ${oldAd.id}`;
@@ -152,7 +152,7 @@ export async function DELETE(request: Request) {
       try {
         const match = ad.image_url.match(/ads\/[^\/?#]+/);
         if (match) {
-          await r2.send(new DeleteObjectCommand({ Bucket: process.env.R2_BUCKET_NAME || 'newsbridge-bucket', Key: match[0] }));
+          await r2.send(new DeleteObjectCommand({ Bucket: process.env.R2_BUCKET_NAME || 'jharkhand-express', Key: match[0] }));
         }
       } catch (e) { console.error('R2 delete failed', e); }
     }

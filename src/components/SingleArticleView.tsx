@@ -67,6 +67,7 @@ interface SingleArticleViewProps {
   globalSettings?: any;
   fontSize?: 'normal' | 'large' | 'xlarge';
   hideDuplicateBar?: boolean;
+  onTopicClick?: (topic: string) => void;
 }
 
 // Media Collage Bento Grid
@@ -143,7 +144,8 @@ export default function SingleArticleView({
   onBack, 
   globalSettings,
   fontSize: propFontSize,
-  hideDuplicateBar = false
+  hideDuplicateBar = false,
+  onTopicClick
 }: SingleArticleViewProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -736,14 +738,25 @@ export default function SingleArticleView({
                   <span className="text-xs font-mono uppercase tracking-wider text-slate-400 mr-2">
                     Filed Under:
                   </span>
-                  {article.tags.map((tag, idx) => (
-                    <span 
-                      key={idx} 
-                      className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
+                  {article.tags.map((tag, idx) => {
+                    const cleanTag = tag.trim().replace(/^#/, '');
+                    const slug = cleanTag.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                    return (
+                      <a 
+                        key={idx} 
+                        href={`/?tag=${encodeURIComponent(slug)}`}
+                        onClick={(e) => {
+                          if (onTopicClick) {
+                            e.preventDefault();
+                            onTopicClick(slug);
+                          }
+                        }}
+                        className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-[#E63946] hover:text-white text-slate-700 text-xs font-semibold transition-all cursor-pointer"
+                      >
+                        #{cleanTag}
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             )}

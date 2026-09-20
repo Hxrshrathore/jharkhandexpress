@@ -10,9 +10,15 @@ import { Search, Menu, Clock, ArrowLeft, X, Globe, Radio, Bookmark, Sparkles, Ch
 import { motion, AnimatePresence } from 'motion/react';
 import { BRAND, SUPPORTED_LANGUAGES, LanguageCode } from '@/lib/brand';
 
+export type EditionType = 'jharkhand' | 'national' | 'global';
+
 interface HeaderProps {
   onCategoryClick?: (category: string | null) => void;
   activeCategory?: string | null;
+  activeTopic?: string | null;
+  onTopicClick?: (topic: string | null) => void;
+  onEditionChange?: (edition: EditionType | null) => void;
+  activeEdition?: EditionType | null;
   onSubscribeClick?: () => void;
   onSearchClick?: () => void;
   readingArticle?: { title: string; category?: string } | null;
@@ -21,6 +27,48 @@ interface HeaderProps {
   savedCount?: number;
   onSavedClick?: () => void;
   whatsappUrl?: string;
+}
+
+export function resolveEditionFromScope(
+  category?: string | null,
+  topic?: string | null
+): EditionType | null {
+  const cat = (category || '').toLowerCase().trim();
+  const top = (topic || '').toLowerCase().trim().replace(/^#/, '');
+
+  // 1. World / Global
+  if (
+    cat === 'world' || cat === 'global' || cat === 'world affairs' || cat === 'international' ||
+    top === 'world' || top === 'global' || top.includes('world') || top.includes('global') ||
+    top.includes('international') || top.includes('geopolitics') || top.includes('foreign')
+  ) {
+    return 'global';
+  }
+
+  // 2. National / India
+  if (
+    cat === 'national' || cat === 'nation' || cat === 'national desk' || cat === 'india' ||
+    top === 'national' || top === 'nation' || top.includes('national') || top.includes('nation') ||
+    top.includes('india') || top.includes('bharat') || top.includes('parliament') || top.includes('delhi')
+  ) {
+    return 'national';
+  }
+
+  // 3. Jharkhand
+  if (
+    cat === 'jharkhand' || cat === 'jharkhand edition' || cat.includes('jharkhand') ||
+    top === 'jharkhand' || top.includes('jharkhand') || top.includes('ranchi') || 
+    top.includes('jamshedpur') || top.includes('dhanbad') || top.includes('bokaro') || 
+    top.includes('deoghar') || top.includes('hazaribagh') || top.includes('dumka')
+  ) {
+    return 'jharkhand';
+  }
+
+  if (!cat && !top) {
+    return 'jharkhand';
+  }
+
+  return null;
 }
 
 function getWeatherEmoji(code: number): string {
@@ -49,6 +97,10 @@ const CATEGORIES = [
 export default function Header({
   onCategoryClick,
   activeCategory,
+  activeTopic,
+  onTopicClick,
+  onEditionChange,
+  activeEdition,
   onSubscribeClick,
   onSearchClick,
   readingArticle,
@@ -62,7 +114,20 @@ export default function Header({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [time, setTime] = useState<string>('');
   const [isSimulated, setIsSimulated] = useState(false);
-  const [selectedEdition, setSelectedEdition] = useState<'jharkhand' | 'national' | 'global'>('jharkhand');
+
+  const initialEdition = activeEdition !== undefined 
+    ? activeEdition 
+    : resolveEditionFromScope(activeCategory, activeTopic);
+
+  const [selectedEdition, setSelectedEdition] = useState<EditionType | null>(initialEdition);
+
+  useEffect(() => {
+    setSelectedEdition(
+      activeEdition !== undefined 
+        ? activeEdition 
+        : resolveEditionFromScope(activeCategory, activeTopic)
+    );
+  }, [activeCategory, activeTopic, activeEdition]);
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState<LanguageCode>('en');
 
@@ -222,11 +287,33 @@ export default function Header({
     }
   };
 
-  const handleEditionChange = (edition: 'jharkhand' | 'national' | 'global') => {
-    setSelectedEdition(edition);
-    if (edition === 'jharkhand') onCategoryClick?.('Jharkhand');
-    else if (edition === 'national') onCategoryClick?.('National');
-    else onCategoryClick?.('World');
+  const handleEditionChange = (edition: EditionType) => {
+    const isCurrentActive = selectedEdition === edition;
+    
+    if (onEditionChange) {
+      if (isCurrentActive) {
+        onEditionChange(null);
+      } else {
+        onEditionChange(edition);
+      }
+      return;
+    }
+
+    if (isCurrentActive) {
+      setSelectedEdition(null);
+      onCategoryClick?.(null);
+      onTopicClick?.(null);
+    } else {
+      setSelectedEdition(edition);
+      if (edition === 'jharkhand') {
+        onCategoryClick?.('Jharkhand');
+      } else if (edition === 'national') {
+        onCategoryClick?.('National');
+      } else {
+        onCategoryClick?.('Global');
+      }
+      onTopicClick?.(null);
+    }
   };
 
   return (
@@ -291,7 +378,7 @@ export default function Header({
           <div className="hidden lg:flex items-center gap-1 bg-slate-900/90 p-0.5 rounded-full border border-slate-700/60">
             <button
               onClick={() => handleEditionChange('jharkhand')}
-              className={`px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase transition-all ${
+              className={`px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
                 selectedEdition === 'jharkhand' ? 'bg-[#E63946] text-white shadow-xs' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -299,7 +386,7 @@ export default function Header({
             </button>
             <button
               onClick={() => handleEditionChange('national')}
-              className={`px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase transition-all ${
+              className={`px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
                 selectedEdition === 'national' ? 'bg-[#0D5C46] text-white shadow-xs' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -307,7 +394,7 @@ export default function Header({
             </button>
             <button
               onClick={() => handleEditionChange('global')}
-              className={`px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase transition-all ${
+              className={`px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
                 selectedEdition === 'global' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -584,19 +671,19 @@ export default function Header({
                     <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-lg">
                       <button
                         onClick={() => { handleEditionChange('jharkhand'); setIsMobileMenuOpen(false); }}
-                        className={`py-1.5 text-xs font-bold rounded-md ${selectedEdition === 'jharkhand' ? 'bg-[#E63946] text-white' : 'text-slate-600'}`}
+                        className={`py-1.5 text-xs font-bold rounded-md transition-all active:scale-95 cursor-pointer ${selectedEdition === 'jharkhand' ? 'bg-[#E63946] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
                       >
                         Jharkhand
                       </button>
                       <button
                         onClick={() => { handleEditionChange('national'); setIsMobileMenuOpen(false); }}
-                        className={`py-1.5 text-xs font-bold rounded-md ${selectedEdition === 'national' ? 'bg-[#0D5C46] text-white' : 'text-slate-600'}`}
+                        className={`py-1.5 text-xs font-bold rounded-md transition-all active:scale-95 cursor-pointer ${selectedEdition === 'national' ? 'bg-[#0D5C46] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
                       >
                         National
                       </button>
                       <button
                         onClick={() => { handleEditionChange('global'); setIsMobileMenuOpen(false); }}
-                        className={`py-1.5 text-xs font-bold rounded-md ${selectedEdition === 'global' ? 'bg-indigo-600 text-white' : 'text-slate-600'}`}
+                        className={`py-1.5 text-xs font-bold rounded-md transition-all active:scale-95 cursor-pointer ${selectedEdition === 'global' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
                       >
                         Global
                       </button>

@@ -21,8 +21,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    const bucketName = process.env.R2_BUCKET_NAME || 'newsbridge-bucket';
-    const publicUrl = process.env.R2_PUBLIC_URL || 'https://cdn.jharkhandexpress.com';
+    const bucketName = process.env.R2_BUCKET_NAME || 'jharkhand-express';
+    const publicUrl = process.env.R2_PUBLIC_URL || 'https://cdn.jharkhandexpress.in';
 
     const fileName = `ads/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
     const bytes = await file.arrayBuffer();

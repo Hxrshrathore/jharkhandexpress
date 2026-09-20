@@ -59,6 +59,7 @@ interface ArticleViewProps {
   headerOffset: number;
   globalSettings?: any;
   onSearchClick?: () => void;
+  onTopicClick?: (topic: string) => void;
 }
 
 export default function ArticleView({ 
@@ -70,7 +71,8 @@ export default function ArticleView({
   onProgressChange, 
   headerOffset, 
   globalSettings,
-  onSearchClick 
+  onSearchClick,
+  onTopicClick
 }: ArticleViewProps) {
   const [loadedArticles, setLoadedArticles] = useState<Article[]>([initialArticle]);
   const [activeArticle, setActiveArticle] = useState<Article>(initialArticle);
@@ -416,6 +418,10 @@ export default function ArticleView({
               globalSettings={globalSettings}
               fontSize={fontSize}
               hideDuplicateBar={true}
+              onTopicClick={(slug) => {
+                onTopicClick?.(slug);
+                onBack();
+              }}
             />
             {index < loadedArticles.length - 1 && (
               <div className="w-full flex items-center justify-center py-16 opacity-30">

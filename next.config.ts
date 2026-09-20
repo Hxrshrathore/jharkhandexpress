@@ -4,6 +4,26 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   reactStrictMode: true,
   allowedDevOrigins: ["192.168.0.129", "127.0.0.1", "localhost"],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn.jharkhandexpress.in',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.jharkhandexpress.in',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pub-332c6c4db0c74d3fbe39d9ed8deb79e1.r2.dev',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.r2.dev',
+      },
+    ],
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: '500mb',
@@ -40,9 +60,6 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-    UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
-    UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
-    INDIAN_API_KEY: process.env.INDIAN_API_KEY,
   },
 };
 

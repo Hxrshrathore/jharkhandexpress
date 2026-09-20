@@ -54,8 +54,8 @@ export async function POST(request: Request) {
 
     const buffer = Buffer.from(await thumRes.arrayBuffer());
 
-    const bucketName = process.env.R2_BUCKET_NAME || 'newsbridge-bucket';
-    const publicUrl = process.env.R2_PUBLIC_URL || 'https://cdn.jharkhandexpress.com';
+    const bucketName = process.env.R2_BUCKET_NAME || 'jharkhand-express';
+    const publicUrl = process.env.R2_PUBLIC_URL || 'https://cdn.jharkhandexpress.in';
     const fileName = `media/screenshot-${crypto.randomUUID()}.jpg`;
 
     await r2.send(new PutObjectCommand({

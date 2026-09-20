@@ -27,15 +27,17 @@ export async function deleteArticleAction(id: string) {
     const article = res[0];
 
     // 2. Delete media from Cloudflare R2
-    const bucketName = process.env.R2_BUCKET_NAME || 'newsbridge-bucket';
-    const r2PublicUrl = process.env.R2_PUBLIC_URL || '';
+    const bucketName = process.env.R2_BUCKET_NAME || 'jharkhand-express';
+    const r2PublicUrl = process.env.R2_PUBLIC_URL || 'https://cdn.jharkhandexpress.in';
     const keysToDelete: { Key: string }[] = [];
 
     const extractKey = (url: string) => {
-      if (!url || !r2PublicUrl) return null;
-      if (url.startsWith(r2PublicUrl)) {
+      if (!url) return null;
+      if (r2PublicUrl && url.startsWith(r2PublicUrl)) {
         return url.replace(`${r2PublicUrl}/`, '');
       }
+      const match = url.match(/(?:media|ads)\/[^\/?#]+/);
+      if (match) return match[0];
       return null;
     };
 
