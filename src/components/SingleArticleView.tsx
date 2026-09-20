@@ -58,6 +58,9 @@ const GoogleGIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 );
 
+import BentoMediaCollage from './BentoMediaCollage';
+import WhatsAppIcon from './WhatsAppIcon';
+
 interface SingleArticleViewProps {
   article: Article;
   articles: Article[];
@@ -69,72 +72,6 @@ interface SingleArticleViewProps {
   onFontSizeChange?: (size: 'normal' | 'large' | 'xlarge') => void;
   hideDuplicateBar?: boolean;
   onTopicClick?: (topic: string) => void;
-}
-
-// Media Collage Bento Grid
-function BentoMediaCollage({ items }: { items: Array<{ type: 'image' | 'video', url: string }> }) {
-  if (items.length === 0) return null;
-  if (items.length === 1) {
-    const item = items[0];
-    return (
-      <div className="my-10 overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 rounded-2xl shadow-md">
-        {item.type === 'image' ? (
-          <img src={item.url} alt="Article media" className="w-full h-auto object-cover max-h-[550px]" />
-        ) : (
-          <div className="aspect-video w-full">
-            <CustomVideoPlayer src={item.url} />
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  let gridClass = "grid gap-3.5 my-10";
-  if (items.length === 2) {
-    gridClass += " grid-cols-1 md:grid-cols-2";
-  } else if (items.length === 3) {
-    gridClass += " grid-cols-1 md:grid-cols-3 md:grid-rows-2 h-[460px]";
-  } else {
-    gridClass += " grid-cols-1 md:grid-cols-4 md:grid-rows-2 h-[560px]";
-  }
-
-  return (
-    <div className={gridClass}>
-      {items.map((item, idx) => {
-        let itemClass = "relative overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 group rounded-2xl shadow-xs";
-        
-        if (items.length === 3) {
-          if (idx === 0) {
-            itemClass += " md:col-span-2 md:row-span-2 h-full min-h-[300px]";
-          } else {
-            itemClass += " md:col-span-1 md:row-span-1 h-full min-h-[150px]";
-          }
-        } else if (items.length >= 4) {
-          if (idx === 0) {
-            itemClass += " md:col-span-2 md:row-span-2 h-full min-h-[300px]";
-          } else if (idx === 1) {
-            itemClass += " md:col-span-2 md:row-span-1 h-full min-h-[150px]";
-          } else {
-            itemClass += " md:col-span-1 md:row-span-1 h-full min-h-[150px]";
-          }
-        }
-
-        return (
-          <div key={idx} className={itemClass}>
-            {item.type === 'image' ? (
-              <img 
-                src={item.url} 
-                alt={`Media asset ${idx + 1}`} 
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-103"
-              />
-            ) : (
-              <CustomVideoPlayer src={item.url} />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
 }
 
 export default function SingleArticleView({ 
@@ -248,11 +185,37 @@ export default function SingleArticleView({
   };
 
   const heroVideoSrc = article.featuredVideo || (article.videoGallery && article.videoGallery.length > 0 ? article.videoGallery[0] : undefined);
-  
-  const mediaItems = [
-    ...(article.gallery || []).map(url => ({ type: 'image' as const, url })),
-    ...(article.videoGallery || []).map(url => ({ type: 'video' as const, url }))
-  ];
+  const heroYtId = article.youtubeVideoId?.trim();
+  const heroImg = article.imageUrl?.trim();
+
+  // Deduplicate gallery images (exclude hero image and duplicate URLs)
+  const seenUrls = new Set<string>();
+  if (heroImg) seenUrls.add(heroImg);
+
+  const cleanGalleryImages: Array<{ type: 'image', url: string }> = [];
+  (article.gallery || []).forEach(url => {
+    if (url && url.trim() && !seenUrls.has(url.trim())) {
+      seenUrls.add(url.trim());
+      cleanGalleryImages.push({ type: 'image', url: url.trim() });
+    }
+  });
+
+  // Deduplicate video gallery (exclude hero YouTube video or hero video source)
+  const seenVideos = new Set<string>();
+  if (heroYtId) seenVideos.add(heroYtId);
+  if (heroVideoSrc) seenVideos.add(heroVideoSrc);
+
+  const cleanVideoItems: Array<{ type: 'video', url: string }> = [];
+  (article.videoGallery || []).forEach(url => {
+    if (!url || !url.trim()) return;
+    const trimmed = url.trim();
+    if (heroYtId && (trimmed === heroYtId || trimmed.includes(heroYtId))) return;
+    if (seenVideos.has(trimmed)) return;
+    seenVideos.add(trimmed);
+    cleanVideoItems.push({ type: 'video', url: trimmed });
+  });
+
+  const mediaItems = [...cleanGalleryImages, ...cleanVideoItems];
 
   // Intelligent Ad & Media Content Renderer
   const renderContentWithMedia = () => {
@@ -287,6 +250,17 @@ export default function SingleArticleView({
     // Standard Intelligent Auto-Placer
     let cleanContent = article.content.replace(/<!-- wp:gallery[\s\S]*?<!-- \/wp:gallery -->/g, '');
     cleanContent = cleanContent.replace(/<!-- wp:video[\s\S]*?<!-- \/wp:video -->/g, '');
+
+    // Strip duplicate Gutenberg & iframe embeds of the hero YouTube video
+    if (heroYtId) {
+      const ytEmbedRegex = new RegExp(`<!-- wp:core-embed/youtube [\\s\\S]*?${heroYtId}[\\s\\S]*?<!-- /wp:core-embed/youtube -->`, 'gi');
+      cleanContent = cleanContent.replace(ytEmbedRegex, '');
+      const ytFigureRegex = new RegExp(`<figure[^>]*class="[^"]*wp-block-embed-youtube[^"]*"[^>]*>[\\s\\S]*?${heroYtId}[\\s\\S]*?</figure>`, 'gi');
+      cleanContent = cleanContent.replace(ytFigureRegex, '');
+    }
+
+    // Strip leftover media placeholder comments
+    cleanContent = cleanContent.replace(/<!-- wp:truth\/media-placeholder[^>]*\/-->/gi, '');
     
     const paragraphs = cleanContent.split('</p>').filter(p => p.trim() !== '');
     const formattedParagraphs = paragraphs.map(p => p.endsWith('</p>') ? p : p + '</p>');
@@ -497,11 +471,11 @@ export default function SingleArticleView({
                     href={googleNewsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-blue-300 text-slate-800 text-xs font-semibold shadow-xs hover:shadow-sm transition-all active:scale-95 shrink-0"
+                    className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-blue-300 text-slate-800 text-xs font-semibold shadow-xs hover:shadow-sm transition-all active:scale-95 shrink-0"
                     aria-label="Add Jharkhand Express as preferred source on Google"
                   >
                     <GoogleGIcon className="w-3.5 h-3.5" />
-                    <span className="hidden md:inline text-[11px] font-bold text-slate-700">Google Preferred</span>
+                    <span className="text-[11px] font-bold text-slate-700">Google Preferred</span>
                   </a>
                 </TooltipTrigger>
                 <TooltipContent side="bottom"><p>Add as preferred source on Google</p></TooltipContent>
@@ -514,10 +488,10 @@ export default function SingleArticleView({
                     href={`https://wa.me/?text=${encodeURIComponent(`${article.title} • Jharkhand Express: ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 rounded-xl text-[#25D366] hover:bg-[#25D366]/10 transition-all active:scale-95"
+                    className="p-2 rounded-xl text-[#25D366] hover:bg-[#25D366]/10 transition-all active:scale-95 flex items-center justify-center"
                     aria-label="Share on WhatsApp"
                   >
-                    <MessageCircle className="w-4 h-4 fill-current" />
+                    <WhatsAppIcon className="w-4 h-4" />
                   </a>
                 </TooltipTrigger>
                 <TooltipContent side="bottom"><p>Share on WhatsApp</p></TooltipContent>
@@ -805,7 +779,7 @@ export default function SingleArticleView({
                   rel="noopener noreferrer"
                   className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366] text-white text-xs font-bold shadow-xs hover:bg-[#20bd5a] transition-all"
                 >
-                  <MessageCircle className="w-4 h-4 fill-current" />
+                  <WhatsAppIcon className="w-4 h-4" />
                   <span>WhatsApp Share</span>
                 </a>
 

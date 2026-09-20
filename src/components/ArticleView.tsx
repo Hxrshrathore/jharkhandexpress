@@ -18,6 +18,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import SingleArticleView from './SingleArticleView';
+import WhatsAppIcon from './WhatsAppIcon';
 import { toast } from 'sonner';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -268,27 +269,27 @@ export default function ArticleView({
               <span>Back</span>
             </button>
 
-            <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-slate-500 font-sans min-w-0">
+            <div className="hidden sm:flex items-center gap-1.5 sm:gap-2 text-xs text-slate-500 font-sans min-w-0">
               <span className="text-slate-400">/</span>
               <span className="font-semibold text-slate-700 uppercase tracking-wider text-[11px] shrink-0">
                 {activeArticle.category || 'Jharkhand'}
               </span>
-              <span className="text-slate-300 hidden sm:inline">/</span>
-              <span className="truncate text-slate-600 font-medium max-w-[130px] sm:max-w-xs md:max-w-sm lg:max-w-md hidden sm:inline">
+              <span className="text-slate-300">/</span>
+              <span className="truncate text-slate-600 font-medium max-w-xs md:max-w-sm lg:max-w-md">
                 {activeArticle.title}
               </span>
             </div>
           </div>
 
           {/* Quick Reading Actions */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {/* Font Size Adjuster */}
             <TooltipProvider delayDuration={150}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     onClick={cycleFontSize}
-                    className="p-1.5 sm:p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all flex items-center gap-1 text-xs font-semibold"
+                    className="p-1.5 sm:p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all flex items-center gap-1 text-xs font-semibold active:scale-95"
                     aria-label="Adjust font size"
                   >
                     <Type className="w-4 h-4" />
@@ -300,18 +301,18 @@ export default function ArticleView({
                 <TooltipContent side="bottom"><p>Toggle text size</p></TooltipContent>
               </Tooltip>
 
-              {/* Google Preferred Source Action */}
+              {/* Google Preferred Source Action (visible on md+) */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <a
                     href={googleNewsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-blue-300 text-slate-800 text-xs font-semibold shadow-xs hover:shadow-sm transition-all active:scale-95 shrink-0"
+                    className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-blue-300 text-slate-800 text-xs font-semibold shadow-xs hover:shadow-sm transition-all active:scale-95 shrink-0"
                     aria-label="Add Jharkhand Express as preferred source on Google"
                   >
                     <GoogleGIcon className="w-3.5 h-3.5" />
-                    <span className="hidden md:inline text-[11px] font-bold text-slate-700">Google Preferred</span>
+                    <span className="text-[11px] font-bold text-slate-700">Google Preferred</span>
                   </a>
                 </TooltipTrigger>
                 <TooltipContent side="bottom"><p>Add as preferred source on Google</p></TooltipContent>
@@ -324,10 +325,10 @@ export default function ArticleView({
                     href={`https://wa.me/?text=${encodeURIComponent(`${activeArticle.title} • Jharkhand Express: ${typeof window !== 'undefined' ? window.location.href : ''}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 rounded-xl text-[#25D366] hover:bg-[#25D366]/10 transition-all active:scale-95"
+                    className="p-2 rounded-xl text-[#25D366] hover:bg-[#25D366]/10 transition-all active:scale-95 flex items-center justify-center"
                     aria-label="Share on WhatsApp"
                   >
-                    <MessageCircle className="w-4 h-4 fill-current" />
+                    <WhatsAppIcon className="w-4 h-4" />
                   </a>
                 </TooltipTrigger>
                 <TooltipContent side="bottom"><p>Share on WhatsApp</p></TooltipContent>
@@ -387,7 +388,7 @@ export default function ArticleView({
                   <TooltipTrigger asChild>
                     <button
                       onClick={onSearchClick}
-                      className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all active:scale-95"
+                      className="hidden sm:inline-flex p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all active:scale-95"
                       aria-label="Search articles"
                     >
                       <Search className="w-4 h-4" />

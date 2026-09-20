@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, Menu, Clock, ArrowLeft, X, Globe, Radio, Bookmark, Sparkles, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import WhatsAppIcon from './WhatsAppIcon';
 import { BRAND, SUPPORTED_LANGUAGES, LanguageCode } from '@/lib/brand';
 
 export type EditionType = 'jharkhand' | 'national' | 'global';
@@ -463,8 +464,8 @@ export default function Header({
               rel="noopener noreferrer"
               className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#25D366]/20 border border-[#25D366]/40 text-[#25D366] text-[10px] font-bold hover:bg-[#25D366] hover:text-white transition-all shadow-xs"
             >
-              <Radio className="w-2.5 h-2.5 animate-pulse" />
-              WhatsApp Alerts
+              <WhatsAppIcon className="w-3.5 h-3.5" />
+              <span>WhatsApp Alerts</span>
             </a>
           </div>
 
@@ -728,8 +729,8 @@ export default function Header({
                   rel="noopener noreferrer"
                   className="w-full py-2.5 bg-[#25D366] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2"
                 >
-                  <Radio className="w-4 h-4 animate-pulse" />
-                  Follow on WhatsApp
+                  <WhatsAppIcon className="w-4 h-4" />
+                  <span>Follow on WhatsApp</span>
                 </a>
               </div>
 

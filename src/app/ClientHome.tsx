@@ -10,6 +10,8 @@ import CategorySection from '../components/home/CategorySection';
 import OpinionSection from '../components/home/OpinionSection';
 import Sidebar from '../components/home/Sidebar';
 import ArticleView from '../components/ArticleView';
+import ArticleSkeleton from '../components/ArticleSkeleton';
+import WhatsAppIcon from '../components/WhatsAppIcon';
 import AdPlacement from '../components/AdPlacement';
 import JharkhandRegionalRadar from '../components/home/JharkhandRegionalRadar';
 import NotificationPrompt from '../components/NotificationPrompt';
@@ -551,14 +553,16 @@ export default function ClientHome({
         />
       </div>
 
-      <TrendingBar
-        selectedFilter={dateFilter}
-        customDate={customArchiveDate}
-        onFilterChange={handleDateFilterChange}
-        onTopicClick={handleTopicClick}
-        selectedTopic={selectedTopic}
-        articles={allArticles}
-      />
+      {currentView !== 'article' && (
+        <TrendingBar
+          selectedFilter={dateFilter}
+          customDate={customArchiveDate}
+          onFilterChange={handleDateFilterChange}
+          onTopicClick={handleTopicClick}
+          selectedTopic={selectedTopic}
+          articles={allArticles}
+        />
+      )}
       
       <main className="relative bg-white text-black pb-20 lg:pb-0" role="main">
         <AnimatePresence mode="wait">
@@ -753,7 +757,7 @@ export default function ClientHome({
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.4 }}
             >
-              {readingArticle && (
+              {readingArticle ? (
                 <ArticleView 
                   article={readingArticle} 
                   articles={allArticles}
@@ -768,6 +772,8 @@ export default function ClientHome({
                   }}
                   onTopicClick={handleTopicClick}
                 />
+              ) : (
+                <ArticleSkeleton contentOnly={true} />
               )}
             </motion.div>
           ) : currentView === 'saved' ? (
@@ -937,9 +943,10 @@ export default function ClientHome({
                 href="https://whatsapp.com/channel/YOUR_CHANNEL_ID"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3 py-1 rounded-full bg-[#25D366]/20 border border-[#25D366]/40 text-[#25D366] text-xs font-bold hover:bg-[#25D366] hover:text-white transition-all"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#25D366]/20 border border-[#25D366]/40 text-[#25D366] text-xs font-bold hover:bg-[#25D366] hover:text-white transition-all"
               >
-                WhatsApp Channel
+                <WhatsAppIcon className="w-3.5 h-3.5" />
+                <span>WhatsApp Channel</span>
               </a>
               <a
                 href="https://twitter.com/jharkhandexpress"
@@ -1100,9 +1107,10 @@ export default function ClientHome({
                     sendGAEvent('event', 'whatsapp_join_click', { method: 'button_click' });
                     setIsSubscribeOpen(false);
                   }}
-                  className="w-full bg-[#25D366] text-white p-4 text-[10px] tracking-widest uppercase hover:bg-[#128C7E] transition-all cursor-pointer font-bold block"
+                  className="w-full bg-[#25D366] text-white p-3.5 text-xs tracking-wider uppercase hover:bg-[#128C7E] transition-all cursor-pointer font-bold flex items-center justify-center gap-2 rounded-xl shadow-md"
                 >
-                  Join WhatsApp Channel
+                  <WhatsAppIcon className="w-5 h-5" />
+                  <span>Join WhatsApp Channel</span>
                 </a>
               </div>
             </motion.div>

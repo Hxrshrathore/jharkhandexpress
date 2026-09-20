@@ -9,6 +9,7 @@ import { useRef, useState, useEffect, Fragment } from 'react';
 import { Article, LiveUpdate } from '../../types';
 import { TrendingUp, BarChart3, ArrowUpRight, ArrowDownRight, Radio, Newspaper, Image as ImageIcon, Users, Sparkles, ChevronRight } from 'lucide-react';
 import AdPlacement from '../AdPlacement';
+import WhatsAppIcon from '../WhatsAppIcon';
 
 interface SidebarProps {
   trending: Article[];
@@ -228,8 +229,8 @@ export default function Sidebar({
 
       {/* ── 4. WhatsApp Direct Community ── */}
       <section className="bg-gradient-to-br from-[#128C7E] to-[#075E54] rounded-2xl p-5 text-white shadow-md">
-        <div className="flex items-center gap-2 mb-2">
-          <Radio className="w-5 h-5 text-emerald-200 animate-pulse" />
+        <div className="flex items-center gap-2.5 mb-2">
+          <WhatsAppIcon className="w-5 h-5 shrink-0" />
           <h3 className="font-serif font-bold text-base">Jharkhand Express Alert Channel</h3>
         </div>
         <p className="text-xs text-emerald-100 mb-4 leading-relaxed font-sans">
@@ -239,9 +240,10 @@ export default function Sidebar({
           href={globalSettings?.whatsapp_url || "https://whatsapp.com/channel/YOUR_CHANNEL_ID"}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full py-2.5 px-4 bg-white text-[#075E54] rounded-xl text-xs font-bold uppercase tracking-wider block text-center shadow hover:bg-emerald-50 transition-colors"
+          className="w-full py-2.5 px-4 bg-white text-[#075E54] rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow hover:bg-emerald-50 transition-colors"
         >
-          Join 25,000+ Readers
+          <WhatsAppIcon className="w-4 h-4" />
+          <span>Join 25,000+ Readers</span>
         </a>
       </section>
 

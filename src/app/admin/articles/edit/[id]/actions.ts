@@ -31,7 +31,7 @@ export async function editFeedItem(prevState: FormState, formData: FormData): Pr
   const featured_video_timestamp = formData.get('featured_video_timestamp') as string || null;
   const featured_video_id = formData.get('featured_video_id') as string || (youtubeVideoIds.length > 0 ? youtubeVideoIds[0] : null);
 
-  const video_gallery_urls: string[] = youtubeVideoIds;
+  const video_gallery_urls: string[] = youtubeVideoIds.filter(id => id !== featured_video_id);
 
   try {
     let slug = formData.get('slug') as string;
@@ -109,14 +109,6 @@ export async function editFeedItem(prevState: FormState, formData: FormData): Pr
     const youtube_status = formData.get('youtube_status') as string || null;
     const expires_at_input = formData.get('expires_at') as string;
     const expires_at = expires_at_input ? new Date(expires_at_input).toISOString() : null;
-
-    if (featured_video_id) {
-       // Only prepend the featured video if it doesn't already exist at the very top to avoid duplicates
-       const ytEmbed = `\n\n<!-- wp:core-embed/youtube {"url":"https://youtu.be/${featured_video_id}"} -->\n<figure class="wp-block-embed is-type-video is-provider-youtube wp-block-embed-youtube wp-embed-aspect-16-9 wp-has-aspect-ratio"><div class="wp-block-embed__wrapper">\n<iframe width="100%" height="450" src="https://www.youtube.com/embed/${featured_video_id}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>\n</div></figure>\n<!-- /wp:core-embed/youtube -->\n\n`;
-       if (!final_content_html.includes(featured_video_id)) {
-           final_content_html = ytEmbed + final_content_html;
-       }
-    }
 
     await sql`
       UPDATE articles SET

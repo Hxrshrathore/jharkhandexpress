@@ -8,6 +8,7 @@
 import { Article } from '@/types';
 import { Clock, ChevronRight, ChevronLeft, Volume2, Bookmark, Sparkles, TrendingUp } from 'lucide-react';
 import { BRAND } from '@/lib/brand';
+import WhatsAppIcon from '../WhatsAppIcon';
 
 interface HeroProps {
   article: Article;
@@ -213,9 +214,10 @@ export default function Hero({
               href="https://whatsapp.com/channel/YOUR_CHANNEL_ID"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-1 rounded-full bg-[#25D366] text-white text-[10px] font-bold tracking-wide hover:bg-[#128C7E] transition-colors shrink-0"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#25D366] text-white text-[10px] font-bold tracking-wide hover:bg-[#128C7E] transition-colors shrink-0"
             >
-              Join
+              <WhatsAppIcon className="w-3 h-3" />
+              <span>Join</span>
             </a>
           </div>
 

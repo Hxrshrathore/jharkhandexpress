@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Home, Radio, Search, Bookmark, Compass, X, Sparkles, Send, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import WhatsAppIcon from './WhatsAppIcon';
 
 interface MobileNavProps {
   currentView: 'home' | 'article' | 'saved';
@@ -162,7 +163,7 @@ export default function MobileNav({
                   rel="noopener noreferrer"
                   className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#25D366] text-white text-xs font-bold shadow-xs hover:bg-[#20bd5a] transition-all"
                 >
-                  <Radio className="w-3.5 h-3.5 animate-pulse" />
+                  <WhatsAppIcon className="w-4 h-4" />
                   <span>WhatsApp Wire</span>
                 </a>
               </div>
