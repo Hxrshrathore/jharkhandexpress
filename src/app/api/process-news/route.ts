@@ -109,6 +109,7 @@ CRITICAL RULES:
 
       let fullContent = '';
       for await (const chunk of completion as any) {
+        if (!chunk.choices || chunk.choices.length === 0) continue;
         const content = chunk.choices[0]?.delta?.content;
         if (content) {
           fullContent += content;
