@@ -13,11 +13,7 @@ const navigation = [
   { name: 'YouTube', href: '/admin/youtube', icon: Tv },
   { name: 'Ads Management', href: '/admin/ads', icon: Camera },
   { name: 'Categories', href: '/admin/categories', icon: FolderTree },
-  { name: 'Tags Engine', href: '/admin/tags', icon: Tag },
-  { name: 'Old Website', href: '/admin/old-website', icon: Globe },
-  { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Support', href: '/admin/support', icon: LifeBuoy },
-  { name: 'Server Health', href: '/admin/health', icon: Activity },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 

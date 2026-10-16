@@ -239,75 +239,89 @@ export default function ScreenshotAdminPage() {
   }
 
   return (
-    <div className="p-2 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-3 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-border pb-6 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border pb-5 sm:pb-6 gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-foreground tracking-tight" style={{ fontFamily: "'General Sans', sans-serif" }}>Ads Management & Campaigns</h1>
-          <p className="text-muted-foreground mt-2 text-sm font-medium">Generate time-traveled proof of run reports for your active ad campaigns.</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground tracking-tight" style={{ fontFamily: "'General Sans', sans-serif" }}>
+            Ads Management & Campaigns
+          </h1>
+          <p className="text-muted-foreground mt-1 sm:mt-2 text-xs sm:text-sm font-medium">
+            Generate time-traveled proof of run reports for your active ad campaigns.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
           <Link 
             href="/admin"
-            className="bg-secondary border border-border text-secondary-foreground px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 hover:bg-secondary/80 transition-colors shadow-sm shrink-0"
+            className="bg-secondary border border-border text-secondary-foreground px-3 sm:px-5 py-2.5 rounded-lg text-xs sm:text-sm font-medium flex items-center justify-center gap-2 hover:bg-secondary/80 transition-colors shadow-xs"
           >
-            <ArrowLeft className="w-5 h-5" />
-            Back to Core
+            <ArrowLeft className="w-4 h-4 shrink-0" />
+            <span>Back to Core</span>
           </Link>
           <Link 
             href="/admin/ads/new"
-            className="bg-primary text-primary-foreground px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 hover:bg-primary/90 transition-colors shadow-sm shrink-0"
+            className="bg-primary text-primary-foreground px-3 sm:px-5 py-2.5 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors shadow-xs"
           >
-            <Plus className="w-5 h-5" />
-            New Campaign
+            <Plus className="w-4 h-4 shrink-0" />
+            <span>New Campaign</span>
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
         
         {/* ACTIVE CAMPAIGNS LIST */}
-        <Card className="flex flex-col h-[600px] overflow-hidden">
-          <CardHeader className="border-b border-border mb-4 shrink-0 flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-3 text-lg">
-              <div className="p-2 bg-emerald-500/10 rounded-lg">
+        <Card className="flex flex-col min-h-[420px] lg:h-[600px] overflow-hidden">
+          <CardHeader className="border-b border-border p-4 sm:p-6 mb-2 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <CardTitle className="flex items-center gap-2.5 text-base sm:text-lg">
+              <div className="p-2 bg-emerald-500/10 rounded-lg shrink-0">
                 <Megaphone className="w-4 h-4 text-emerald-500" />
               </div>
-              Active Campaigns
+              <span>Active Campaigns</span>
             </CardTitle>
             <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground cursor-pointer select-none">
               <input 
                 type="checkbox" 
                 checked={multiPagePdf} 
                 onChange={(e) => setMultiPagePdf(e.target.checked)} 
-                className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary accent-primary" 
+                className="w-4 h-4 rounded border-border text-primary focus:ring-primary accent-primary" 
               />
               <span>Full-Width Sliced PDF</span>
             </label>
           </CardHeader>
           
-          <CardContent className="flex-1 overflow-y-auto space-y-4">
+          <CardContent className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
             {campaigns.length === 0 ? (
-              <div className="text-center text-muted-foreground py-12">No active campaigns running.</div>
+              <div className="text-center text-muted-foreground py-12 text-sm">No active campaigns running.</div>
             ) : (
               campaigns.map(camp => (
-                <div key={camp.id} className="border border-border bg-muted/30 rounded-xl p-4 group">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-foreground text-sm">{camp.name}</h3>
-                    <div className="flex gap-1">
-                      <Link href={`/admin/ads/edit/${camp.id}`} className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:text-blue-500 transition-colors">
+                <div key={camp.id} className="border border-border bg-muted/30 rounded-xl p-3.5 sm:p-4 group">
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <h3 className="font-bold text-foreground text-sm line-clamp-1">{camp.name}</h3>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Link 
+                        href={`/admin/ads/edit/${camp.id}`} 
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-blue-500 hover:bg-muted transition-colors"
+                        title="Edit Campaign"
+                      >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                       </Link>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteCampaign(camp.id)} className="text-muted-foreground hover:text-destructive h-8 w-8">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleDeleteCampaign(camp.id)} 
+                        className="text-muted-foreground hover:text-destructive h-8 w-8 rounded-lg"
+                        title="Delete Campaign"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
-                  <div className="text-xs text-muted-foreground font-mono mb-4 uppercase">
+                  <div className="text-[11px] sm:text-xs text-muted-foreground font-mono mb-3 uppercase">
                     {new Date(camp.valid_from).toLocaleDateString()} — {new Date(camp.valid_to).toLocaleDateString()}
                   </div>
                   
-                  <div className="flex gap-2 mb-4">
+                  <div className="flex gap-2 mb-3.5">
                     <Badge variant="secondary" className="text-emerald-500 font-bold uppercase tracking-widest text-[10px]">
                       {camp.ads.filter(a => a.type === 'leaderboard').length} LDBR
                     </Badge>
@@ -320,7 +334,7 @@ export default function ScreenshotAdminPage() {
                     variant="outline"
                     onClick={() => runBatchScreenshotEngine(camp)}
                     disabled={batchRunning}
-                    className="w-full text-xs font-bold uppercase tracking-widest"
+                    className="w-full text-xs font-bold uppercase tracking-widest h-10 min-h-[40px]"
                   >
                     <ImageDown className="w-4 h-4 mr-2" /> GENERATE PROOFS
                   </Button>

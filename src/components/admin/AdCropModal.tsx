@@ -128,14 +128,14 @@ export default function AdCropModal({
 
   return (
     <Dialog open={!!item} onOpenChange={(open) => !open && onCancel()}>
-      <DialogContent className="max-w-2xl border-border bg-background p-6">
+      <DialogContent className="max-w-2xl border-border bg-background p-4 sm:p-6 max-h-[92vh] overflow-y-auto rounded-2xl">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-1">
-            <div className="p-2.5 bg-amber-500/10 text-amber-500 rounded-xl">
+            <div className="p-2.5 bg-amber-500/10 text-amber-500 rounded-xl shrink-0">
               <Crop className="w-5 h-5" />
             </div>
             <div>
-              <DialogTitle className="text-lg font-bold">
+              <DialogTitle className="text-base sm:text-lg font-bold">
                 Adjust Aspect Ratio for {item.targetName}
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground mt-0.5">
@@ -146,11 +146,11 @@ export default function AdCropModal({
         </DialogHeader>
 
         {/* Comparison Alert */}
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-400 flex items-center justify-between gap-4">
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-400 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
           <div>
             <span className="font-bold">Uploaded:</span> {item.width} × {item.height} px (Ratio {item.actualRatio.toFixed(2)}:1)
           </div>
-          <ArrowRight className="w-4 h-4 shrink-0 text-muted-foreground" />
+          <ArrowRight className="w-4 h-4 shrink-0 text-muted-foreground hidden sm:block" />
           <div>
             <span className="font-bold">Required {item.targetName}:</span> {item.targetWidth} × {item.targetHeight} px (Ratio {item.targetRatio.toFixed(2)}:1)
           </div>
@@ -163,22 +163,22 @@ export default function AdCropModal({
               Cropped Preview ({item.targetWidth} × {item.targetHeight})
             </span>
             <span className="text-[11px] text-muted-foreground">
-              {isWider ? 'Pan Horizontally' : 'Pan Vertically'} to adjust crop area
+              {isWider ? 'Pan Horizontally' : 'Pan Vertically'}
             </span>
           </div>
 
-          <div className="relative border border-border bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center p-3 min-h-[140px] max-h-[300px]">
+          <div className="relative border border-border bg-slate-950 rounded-xl overflow-hidden flex items-center justify-center p-3 min-h-[120px] max-h-[240px] sm:max-h-[300px]">
             <canvas
               ref={canvasRef}
-              className={`max-w-full max-h-[260px] object-contain rounded shadow-lg border border-white/10 ${
-                item.type === 'leaderboard' ? 'aspect-[728/90] w-full' : 'aspect-[300/250] w-[300px]'
+              className={`max-w-full max-h-[220px] sm:max-h-[260px] object-contain rounded shadow-lg border border-white/10 ${
+                item.type === 'leaderboard' ? 'aspect-[728/90] w-full' : 'aspect-[300/250] w-[260px] sm:w-[300px]'
               }`}
             />
           </div>
         </div>
 
         {/* Adjustment Controls */}
-        <div className="space-y-4 bg-muted/40 p-4 rounded-xl border border-border">
+        <div className="space-y-4 bg-muted/40 p-3.5 sm:p-4 rounded-xl border border-border">
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs font-semibold">
               <label htmlFor="crop-position-slider" className="cursor-pointer">
@@ -195,14 +195,14 @@ export default function AdCropModal({
               max="100"
               value={positionPercent}
               onChange={(e) => setPositionPercent(Number(e.target.value))}
-              className="w-full accent-primary cursor-pointer"
+              className="w-full accent-primary cursor-pointer h-6 py-2"
             />
             <div className="flex justify-between text-[10px] text-muted-foreground">
               <span>{isWider ? 'Left' : 'Top'}</span>
               <button 
                 type="button" 
                 onClick={() => setPositionPercent(50)}
-                className="hover:text-primary transition-colors flex items-center gap-1"
+                className="hover:text-primary transition-colors flex items-center gap-1 font-semibold"
               >
                 <RotateCcw className="w-2.5 h-2.5" /> Center
               </button>
@@ -211,12 +211,12 @@ export default function AdCropModal({
           </div>
         </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-2">
+        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
           <Button
             type="button"
             variant="ghost"
             onClick={onCancel}
-            className="text-xs uppercase tracking-wider font-semibold"
+            className="w-full sm:w-auto text-xs uppercase tracking-wider font-semibold"
           >
             Cancel
           </Button>
@@ -224,14 +224,14 @@ export default function AdCropModal({
             type="button"
             variant="outline"
             onClick={onSkipCrop}
-            className="text-xs uppercase tracking-wider font-semibold border-border"
+            className="w-full sm:w-auto text-xs uppercase tracking-wider font-semibold border-border"
           >
             Upload Without Cropping
           </Button>
           <Button
             type="button"
             onClick={handleApplyCrop}
-            className="bg-primary text-primary-foreground text-xs uppercase tracking-wider font-bold gap-2"
+            className="w-full sm:w-auto bg-primary text-primary-foreground text-xs uppercase tracking-wider font-bold gap-2"
           >
             <Check className="w-4 h-4" />
             Crop & Upload

@@ -186,6 +186,14 @@ export default function Loading() {
 
             </div>
 
+            {/* Mobile Only: Rectangle Ad Skeleton (over Fast Wire / below Hero story) */}
+            <div className="lg:hidden w-full h-[282px] bg-slate-50/60 p-4 border border-slate-200/80 rounded-2xl flex flex-col items-center justify-center gap-2 skeleton-shimmer">
+              <span className="text-[10px] font-mono tracking-widest uppercase text-slate-400 font-semibold">
+                ADVERTISEMENT
+              </span>
+              <div className="w-[300px] max-w-full h-[250px] bg-slate-200/70 rounded" />
+            </div>
+
             {/* Right: Secondary Featured Stories (4 Cols) */}
             <div className="lg:col-span-4 flex flex-col justify-between gap-4">
               {[1, 2, 3].map((num) => (

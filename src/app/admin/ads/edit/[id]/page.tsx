@@ -368,71 +368,71 @@ export default function EditCampaignPage({ params }: { params: Promise<{ id: str
   };
 
   return (
-    <div className="p-2 md:p-8 max-w-5xl mx-auto space-y-8">
+    <div className="p-3 sm:p-6 md:p-8 max-w-5xl mx-auto space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-border pb-6 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border pb-5 sm:pb-6 gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-foreground tracking-tight" style={{ fontFamily: "'General Sans', sans-serif" }}>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight" style={{ fontFamily: "'General Sans', sans-serif" }}>
             Edit Campaign
           </h1>
-          <p className="text-muted-foreground mt-2 text-sm font-medium">
+          <p className="text-muted-foreground mt-1 sm:mt-2 text-xs sm:text-sm font-medium">
             Update ad pools and configurations for Campaign #{campaignId}.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <Link 
             href="/admin/ads"
-            className="bg-secondary border border-border text-secondary-foreground px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 hover:bg-secondary/80 transition-colors shadow-sm shrink-0"
+            className="w-full sm:w-auto justify-center bg-secondary border border-border text-secondary-foreground px-4 sm:px-5 py-2.5 rounded-lg text-xs sm:text-sm font-medium flex items-center gap-2 hover:bg-secondary/80 transition-colors shadow-xs shrink-0"
           >
-            <ArrowLeft className="w-5 h-5" />
-            Cancel
+            <ArrowLeft className="w-4 h-4" />
+            <span>Cancel</span>
           </Link>
         </div>
       </div>
 
       {/* Specifications & Ad Types Guide Card */}
-      <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-cyan-500/10 border border-emerald-500/20 rounded-2xl p-6">
-        <div className="flex items-center gap-2 mb-4 text-emerald-600 dark:text-emerald-400">
-          <Info className="w-5 h-5" />
-          <h2 className="text-sm font-bold uppercase tracking-wider">
+      <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-cyan-500/10 border border-emerald-500/20 rounded-2xl p-4 sm:p-6">
+        <div className="flex items-center gap-2 mb-3.5 text-emerald-600 dark:text-emerald-400">
+          <Info className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+          <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider">
             Supported Ad Formats & Dimension Specifications
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-background/80 backdrop-blur rounded-xl p-4 border border-border">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-bold text-sm text-foreground flex items-center gap-1.5">
-                <Monitor className="w-4 h-4 text-emerald-500" />
+          <div className="bg-background/80 backdrop-blur rounded-xl p-3.5 sm:p-4 border border-border">
+            <div className="flex flex-wrap items-center justify-between gap-1.5 mb-2">
+              <span className="font-bold text-xs sm:text-sm text-foreground flex items-center gap-1.5">
+                <Monitor className="w-4 h-4 text-emerald-500 shrink-0" />
                 Leaderboard Banner
               </span>
-              <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono text-[11px] font-bold px-2 py-0.5 rounded">
+              <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded whitespace-nowrap">
                 728 × 90 px (8.09:1)
               </span>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed mb-3">
               Standard horizontal banner. Placed across Homepage news sections (Slots 1–6) and distributed between paragraphs inside news articles.
             </p>
-            <div className="text-[11px] space-y-1 font-mono text-muted-foreground border-t border-border pt-2.5">
+            <div className="text-[10px] sm:text-[11px] space-y-1 font-mono text-muted-foreground border-t border-border pt-2.5">
               <div><strong className="text-foreground">Retina 2x:</strong> 1456 × 180 px</div>
               <div><strong className="text-foreground">Supported:</strong> JPG, PNG, WEBP, GIF, MP4, WEBM (Max 5MB img / 20MB vid)</div>
             </div>
           </div>
 
-          <div className="bg-background/80 backdrop-blur rounded-xl p-4 border border-border">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-bold text-sm text-foreground flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-cyan-500" />
+          <div className="bg-background/80 backdrop-blur rounded-xl p-3.5 sm:p-4 border border-border">
+            <div className="flex flex-wrap items-center justify-between gap-1.5 mb-2">
+              <span className="font-bold text-xs sm:text-sm text-foreground flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-cyan-500 shrink-0" />
                 Medium Rectangle
               </span>
-              <span className="bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-mono text-[11px] font-bold px-2 py-0.5 rounded">
+              <span className="bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-mono text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded whitespace-nowrap">
                 300 × 250 px (1.20:1)
               </span>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed mb-3">
               Compact sidebar banner. Placed in Desktop Right Sidebar across Homepage (Slots 1–6), Article Sidebar, and mid-story fallbacks.
             </p>
-            <div className="text-[11px] space-y-1 font-mono text-muted-foreground border-t border-border pt-2.5">
+            <div className="text-[10px] sm:text-[11px] space-y-1 font-mono text-muted-foreground border-t border-border pt-2.5">
               <div><strong className="text-foreground">Retina 2x:</strong> 600 × 500 px</div>
               <div><strong className="text-foreground">Supported:</strong> JPG, PNG, WEBP, GIF, MP4, WEBM (Supports Video Ads)</div>
             </div>
@@ -441,18 +441,18 @@ export default function EditCampaignPage({ params }: { params: Promise<{ id: str
       </div>
 
       <Card>
-        <CardHeader className="border-b border-border mb-6">
+        <CardHeader className="border-b border-border p-4 sm:p-6 mb-4 sm:mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-500/10 rounded-lg">
+            <div className="p-2 bg-emerald-500/10 rounded-lg shrink-0">
               <Plus className="w-5 h-5 text-emerald-500" />
             </div>
             <div>
-              <CardTitle className="text-lg">Campaign Meta</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Campaign Meta</CardTitle>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <CardContent className="p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <div className="space-y-2">
               <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Campaign Name</Label>
               <Input 
@@ -504,20 +504,20 @@ export default function EditCampaignPage({ params }: { params: Promise<{ id: str
             )}
           </div>
 
-          <div className="bg-muted/30 border border-border rounded-xl p-6 mb-8">
+          <div className="bg-muted/30 border border-border rounded-xl p-3.5 sm:p-6 mb-6 sm:mb-8">
             <Tabs defaultValue="leaderboard" value={activeTab} onValueChange={(val) => setActiveTab(val as 'leaderboard' | 'rectangle')}>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-5 sm:mb-6">
                 <div>
                   <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Attach Campaign Assets</h3>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
                     Images are automatically checked for the recommended aspect ratio and can be cropped to fit.
                   </p>
                 </div>
-                <TabsList>
-                  <TabsTrigger value="leaderboard" className="text-xs font-bold uppercase tracking-widest">
+                <TabsList className="w-full grid grid-cols-2 h-auto p-1 bg-muted rounded-xl sm:w-auto sm:flex sm:h-10">
+                  <TabsTrigger value="leaderboard" className="py-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-center">
                     Leaderboards (728×90)
                   </TabsTrigger>
-                  <TabsTrigger value="rectangle" className="text-xs font-bold uppercase tracking-widest">
+                  <TabsTrigger value="rectangle" className="py-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-center">
                     Rectangles (300×250)
                   </TabsTrigger>
                 </TabsList>
@@ -776,7 +776,7 @@ export default function EditCampaignPage({ params }: { params: Promise<{ id: str
           <Button 
             onClick={handleLaunchCampaign}
             disabled={savingCampaign || capacityStatus === 'error'}
-            className="w-full bg-primary text-primary-foreground py-6 text-sm font-black uppercase tracking-widest hover:bg-primary/90 shadow-md transition-all"
+            className="w-full bg-primary text-primary-foreground py-4 sm:py-6 text-xs sm:text-sm font-black uppercase tracking-widest hover:bg-primary/90 shadow-md transition-all min-h-[48px]"
           >
             {savingCampaign ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Camera className="w-5 h-5 mr-2" />} 
             UPDATE CAMPAIGN IN DATABASE

@@ -9,6 +9,7 @@ import { Article } from '@/types';
 import { Clock, ChevronRight, ChevronLeft, Volume2, Bookmark, Sparkles, TrendingUp } from 'lucide-react';
 import { BRAND } from '@/lib/brand';
 import WhatsAppIcon from '../WhatsAppIcon';
+import AdPlacement from '../AdPlacement';
 
 interface HeroProps {
   article: Article;
@@ -18,6 +19,8 @@ interface HeroProps {
   onNext?: (e: React.MouseEvent) => void;
   currentIndex?: number;
   totalArticles?: number;
+  simulatedDate?: string;
+  globalSettings?: any;
 }
 
 function parseTimestampToSeconds(ts: string | null | undefined): number {
@@ -37,11 +40,13 @@ export default function Hero({
   onPrev,
   onNext,
   currentIndex = 0,
-  totalArticles = 0
+  totalArticles = 0,
+  simulatedDate,
+  globalSettings
 }: HeroProps) {
   if (!article) return null;
 
-  const sideArticles = secondaryArticles.slice(0, 4);
+  const sideArticles = secondaryArticles.slice(0, 7);
 
   return (
     <section className="py-6 px-4 sm:px-8 max-w-[1600px] mx-auto">
@@ -141,10 +146,19 @@ export default function Hero({
           </div>
         </div>
 
+        {/* ── MOBILE ONLY: RECTANGLE AD BLOCK (OVER THE FAST WIRE / BELOW HERO SECTION) ── */}
+        <AdPlacement
+          type="rectangle"
+          slotId="HP-REC-01"
+          simulatedDate={simulatedDate}
+          globalSettings={globalSettings}
+          wrapperClassName="lg:hidden bg-slate-50/60 p-4 border border-slate-200/80 rounded-2xl flex justify-center overflow-hidden w-full"
+        />
+
         {/* ── RIGHT: THE FAST WIRE DISPATCHES (4 COLS) ── */}
         <div className="lg:col-span-4 flex flex-col justify-between bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
           
-          <div className="border-b border-slate-100 pb-3 mb-4 flex items-center justify-between">
+          <div className="border-b border-slate-100 pb-3 mb-4 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-[#E63946]" />
               <h2 className="font-sans font-bold text-sm text-slate-900 tracking-tight uppercase">
@@ -156,16 +170,16 @@ export default function Hero({
             </span>
           </div>
 
-          <div className="space-y-4 divide-y divide-slate-100 flex-1">
+          <div className="divide-y divide-slate-100 flex-1 flex flex-col justify-between">
             {sideArticles.length > 0 ? (
               sideArticles.map((item, idx) => (
                 <div
                   key={item.id}
                   onClick={() => onClick(item)}
-                  className={`pt-3 first:pt-0 group/item cursor-pointer flex gap-3 items-start transition-all`}
+                  className="py-2.5 first:pt-0 last:pb-0 group/item cursor-pointer flex gap-3 items-center transition-all"
                 >
-                  <span className="font-serif font-black text-2xl text-slate-300 group-hover/item:text-[#E63946] transition-colors leading-none pt-1 shrink-0 w-6">
-                    0{idx + 1}
+                  <span className="font-serif font-black text-xl sm:text-2xl text-slate-300 group-hover/item:text-[#E63946] transition-colors leading-none shrink-0 w-6">
+                    {String(idx + 1).padStart(2, '0')}
                   </span>
 
                   <div className="flex-1 min-w-0 space-y-1">
@@ -185,7 +199,7 @@ export default function Hero({
                   </div>
 
                   {item.imageUrl && (
-                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-100">
+                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-100">
                       <img
                         src={item.imageUrl}
                         alt={item.title}

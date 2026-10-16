@@ -585,7 +585,7 @@ export default function ClientHome({
                 {heroArticles.length > 0 ? (
                   <Hero 
                     article={heroArticles[safeHeroIndex]} 
-                    secondaryArticles={displayArticles.filter(a => a.id !== heroArticles[safeHeroIndex]?.id).slice(0, 8)}
+                    secondaryArticles={displayArticles.filter(a => a.id !== heroArticles[safeHeroIndex]?.id).slice(0, 12)}
                     onClick={handleArticleClick}
                     onPrev={(e) => {
                       e.stopPropagation();
@@ -597,6 +597,8 @@ export default function ClientHome({
                     }}
                     currentIndex={safeHeroIndex}
                     totalArticles={heroArticles.length}
+                    simulatedDate={simulatedDate}
+                    globalSettings={globalSettings}
                   />
                 ) : (
                   <div className="w-full h-64 flex flex-col items-center justify-center text-slate-500 font-sans text-sm border border-slate-200 rounded-2xl mx-4 my-8 p-6 text-center space-y-2">

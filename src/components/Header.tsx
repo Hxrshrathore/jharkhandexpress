@@ -403,60 +403,62 @@ export default function Header({
             </button>
           </div>
 
-          {/* Right: Language Dropdown + Fast WhatsApp Channel Action */}
+          {/* Right: Language Dropdown (Temporarily hidden) + Fast WhatsApp Channel Action */}
           <div className="flex items-center gap-3">
-            {/* Language Switcher */}
-            <div className="relative">
-              <button
-                onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-                className="flex items-center gap-1.5 px-2 py-0.5 rounded-md hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
-                aria-label="Select Language"
-              >
-                <Globe className="w-3 h-3 text-emerald-400" />
-                <span className="text-[10px] font-bold uppercase tracking-wider">
-                  {SUPPORTED_LANGUAGES.find(l => l.code === currentLang)?.label || 'English'}
-                </span>
-                <ChevronDown className="w-2.5 h-2.5 opacity-60" />
-              </button>
+            {/* Language / Translation Switcher - Temporarily Hidden */}
+            {false && (
+              <div className="relative">
+                <button
+                  onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                  className="flex items-center gap-1.5 px-2 py-0.5 rounded-md hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
+                  aria-label="Select Language"
+                >
+                  <Globe className="w-3 h-3 text-emerald-400" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                    {SUPPORTED_LANGUAGES.find(l => l.code === currentLang)?.label || 'English'}
+                  </span>
+                  <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+                </button>
 
-              <AnimatePresence>
-                {isLangMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 5 }}
-                    className="absolute right-0 top-full mt-1.5 w-40 bg-slate-900 border border-slate-700 rounded-lg shadow-xl py-1 z-110 overflow-hidden"
-                  >
-                    <div className="px-3 py-1.5 text-[9px] font-mono uppercase tracking-widest text-slate-400 border-b border-slate-800">
-                      Select Edition Language
-                    </div>
-                    {SUPPORTED_LANGUAGES.map((lang) => (
-                      <button
-                        key={lang.code}
-                        onClick={() => {
-                          setCurrentLang(lang.code as LanguageCode);
-                          setIsLangMenuOpen(false);
-                          // Translate support trigger
-                          if (typeof window !== 'undefined') {
-                            const event = new CustomEvent('je_lang_change', { detail: lang.code });
-                            window.dispatchEvent(event);
-                          }
-                        }}
-                        className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left hover:bg-slate-800 transition-colors ${
-                          currentLang === lang.code ? 'text-emerald-400 font-bold bg-slate-800/50' : 'text-slate-300'
-                        }`}
-                      >
-                        <span className="flex items-center gap-2">
-                          <span>{lang.flag}</span>
-                          <span>{lang.nativeName}</span>
-                        </span>
-                        {currentLang === lang.code && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                <AnimatePresence>
+                  {isLangMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
+                      className="absolute right-0 top-full mt-1.5 w-40 bg-slate-900 border border-slate-700 rounded-lg shadow-xl py-1 z-110 overflow-hidden"
+                    >
+                      <div className="px-3 py-1.5 text-[9px] font-mono uppercase tracking-widest text-slate-400 border-b border-slate-800">
+                        Select Edition Language
+                      </div>
+                      {SUPPORTED_LANGUAGES.map((lang) => (
+                        <button
+                          key={lang.code}
+                          onClick={() => {
+                            setCurrentLang(lang.code as LanguageCode);
+                            setIsLangMenuOpen(false);
+                            // Translate support trigger
+                            if (typeof window !== 'undefined') {
+                              const event = new CustomEvent('je_lang_change', { detail: lang.code });
+                              window.dispatchEvent(event);
+                            }
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-1.5 text-xs text-left hover:bg-slate-800 transition-colors ${
+                            currentLang === lang.code ? 'text-emerald-400 font-bold bg-slate-800/50' : 'text-slate-300'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span>{lang.flag}</span>
+                            <span>{lang.nativeName}</span>
+                          </span>
+                          {currentLang === lang.code && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
 
             <a
               href={whatsappUrl || "https://whatsapp.com/channel/YOUR_CHANNEL_ID"}

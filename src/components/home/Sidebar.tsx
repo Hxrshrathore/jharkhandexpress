@@ -120,13 +120,13 @@ export default function Sidebar({
         </div>
       </section>
 
-      {/* ── Ad Slot 1 (HP-REC-01) ── */}
+      {/* ── Ad Slot 1 (HP-REC-01) - Visible on desktop sidebar (moved above Fast Wire on mobile) ── */}
       <AdPlacement
         type="rectangle"
         slotId="HP-REC-01"
         simulatedDate={simulatedDate}
         globalSettings={globalSettings}
-        wrapperClassName="bg-slate-50/60 p-4 border border-slate-200/80 rounded-2xl flex justify-center overflow-hidden"
+        wrapperClassName="hidden lg:flex bg-slate-50/60 p-4 border border-slate-200/80 rounded-2xl justify-center overflow-hidden"
       />
 
       {/* ── 2. Trending Leaderboard ── */}
