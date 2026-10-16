@@ -300,20 +300,21 @@ export default function SingleArticleView({
       targetUrl: ad.target_url,
     }));
 
-    const maxContainers = Math.min(Math.max(1, formattedParagraphs.length - 1), 6); 
-    const chunkArray = (arr: any[], numChunks: number) => {
-      if (arr.length === 0) return [];
-      if (arr.length < numChunks) {
-        return Array.from({ length: numChunks }, (_, i) => [arr[i % arr.length]]);
-      }
-      const chunks: any[][] = Array.from({ length: numChunks }, () => []);
-      arr.forEach((item, index) => {
-        chunks[index % numChunks].push(item);
+    // In articles: each active leaderboard ad is placed at most ONCE into the article.
+    // If there is 1 ad, place it after paragraph 2 (or 1 if short).
+    // If there are multiple ads, space them evenly without repeating the same ad.
+    const adTargetPositions = new Map<number, any>();
+    if (activeArticleAds.length > 0 && formattedParagraphs.length > 1) {
+      const step = Math.max(2, Math.floor(formattedParagraphs.length / (activeArticleAds.length + 1)));
+      activeArticleAds.forEach((ad: any, i: number) => {
+        let targetIdx = Math.min((i + 1) * step, formattedParagraphs.length - 1);
+        if (targetIdx === 1 && mediaItems.length > 0 && formattedParagraphs.length > 2) {
+          targetIdx = 2;
+        }
+        adTargetPositions.set(targetIdx, ad);
       });
-      return chunks.filter(c => c.length > 0);
-    };
-    
-    const adChunks = chunkArray(activeArticleAds, maxContainers);
+    }
+
     const elements: React.ReactNode[] = [];
     
     if (formattedParagraphs.length === 0) {
@@ -325,14 +326,15 @@ export default function SingleArticleView({
     formattedParagraphs.forEach((para, idx) => {
        elements.push(<div key={`p-${idx}`} dangerouslySetInnerHTML={{ __html: para }} />);
        
-       if (idx < adChunks.length) {
+       const adForThisPara = adTargetPositions.get(idx);
+       if (adForThisPara) {
           elements.push(
              <AdPlacement 
                key={`dynamic-ad-slot-${idx}`} 
                type="leaderboard" 
                slotId={`AUTO-DYN-${article.id}-${idx}`} 
                wrapperClassName="my-10 flex justify-center w-full" 
-               items={adChunks[idx]}
+               items={[adForThisPara]}
                globalSettings={globalSettings}
                placementContext="article"
              />
@@ -349,7 +351,7 @@ export default function SingleArticleView({
                key={`dynamic-rect-slot-${idx}`} 
                type="rectangle" 
                slotId={`AUTO-DYN-REC-${article.id}`} 
-               wrapperClassName="my-10 flex justify-center w-full" 
+               wrapperClassName="my-10 flex justify-center w-full lg:hidden" 
                items={rectangleAdItems}
                globalSettings={globalSettings}
                placementContext="article"
@@ -367,7 +369,7 @@ export default function SingleArticleView({
             key="dynamic-rect-slot-fallback" 
             type="rectangle" 
             slotId={`AUTO-DYN-REC-${article.id}-fallback`} 
-            wrapperClassName="my-10 flex justify-center w-full" 
+            wrapperClassName="my-10 flex justify-center w-full lg:hidden" 
             items={rectangleAdItems}
             globalSettings={globalSettings}
             placementContext="article"

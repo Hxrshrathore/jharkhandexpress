@@ -124,30 +124,23 @@ export default function AdPlacement({
       const N = typeAds.length;
 
       if (N > 0) {
-        if (N < totalSlots) {
-          // When fewer ads than slots, distribute ads cyclically so slots don't stay empty
-          const ad = typeAds[slotIndex % N];
-          activeItems = [{
-            id: `dynamic-ad-${ad.id}`,
-            imageUrl: ad.image_url,
-            title: 'Sponsored Placement',
-            targetUrl: ad.target_url || undefined,
-          }];
-        } else {
-          const base = Math.floor(N / totalSlots);
-          const remainder = N % totalSlots;
-          const countForThisSlot = slotIndex < remainder ? base + 1 : base;
-          const startIndex = slotIndex * base + Math.min(slotIndex, remainder);
-          
-          const assignedAds = typeAds.slice(startIndex, startIndex + countForThisSlot);
-          
-          activeItems = assignedAds.map((ad: any) => ({
-            id: `dynamic-ad-${ad.id}`,
-            imageUrl: ad.image_url,
-            title: 'Sponsored Placement',
-            targetUrl: ad.target_url || undefined,
-          }));
-        }
+        // Strict 1-to-1 or partitioned allocation:
+        // Each ad is allotted to its dedicated slot.
+        // If there are fewer ads than the 6 slots (e.g. 1 banner), ONLY slot 0 (HP-...-01) displays it.
+        // Slots 1 to 5 receive 0 ads and return null, preventing any repeating/duplication.
+        const base = Math.floor(N / totalSlots);
+        const remainder = N % totalSlots;
+        const countForThisSlot = slotIndex < remainder ? base + 1 : base;
+        const startIndex = slotIndex * base + Math.min(slotIndex, remainder);
+        
+        const assignedAds = typeAds.slice(startIndex, startIndex + countForThisSlot);
+        
+        activeItems = assignedAds.map((ad: any) => ({
+          id: `dynamic-ad-${ad.id}`,
+          imageUrl: ad.image_url,
+          title: 'Sponsored Placement',
+          targetUrl: ad.target_url || undefined,
+        }));
       }
     }
   }
