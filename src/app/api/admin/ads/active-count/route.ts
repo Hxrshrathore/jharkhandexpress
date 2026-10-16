@@ -9,7 +9,7 @@ export async function GET() {
       JOIN ad_campaigns ac ON sa.campaign_id = ac.id
       WHERE sa.active = true 
         AND sa.show_in_articles = true 
-        AND ac.valid_to >= NOW()
+        AND (ac.valid_to + INTERVAL '1 day') >= NOW()
         AND ac.valid_from <= NOW();
     `;
     return NextResponse.json({ count: Math.min(parseInt(res[0].count) || 0, 6) });

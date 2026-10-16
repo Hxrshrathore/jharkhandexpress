@@ -270,13 +270,16 @@ export default function SingleArticleView({
     
     const activeRectangleAds = allAds.filter((ad: any) => {
       if (!ad.active || ad.type !== 'rectangle' || !ad.show_in_articles) return false;
+      if (globalSettings?.force_ad_campaign_id && ad.campaign_id === globalSettings.force_ad_campaign_id) return true;
       const validFrom = new Date(ad.valid_from);
       const validTo = new Date(ad.valid_to);
+      validTo.setHours(23, 59, 59, 999);
       return currentDateObj >= validFrom && currentDateObj <= validTo;
     }).map((ad: any) => ({
       id: `dynamic-ad-${ad.id}`,
       imageUrl: ad.image_url,
       title: 'Sponsored Placement',
+      targetUrl: ad.target_url,
     }));
 
     let rectangleAdItems: any[] = [];
@@ -285,17 +288,24 @@ export default function SingleArticleView({
 
     const activeArticleAds = allAds.filter((ad: any) => {
       if (!ad.active || ad.type !== 'leaderboard' || !ad.show_in_articles) return false;
+      if (globalSettings?.force_ad_campaign_id && ad.campaign_id === globalSettings.force_ad_campaign_id) return true;
       const validFrom = new Date(ad.valid_from);
       const validTo = new Date(ad.valid_to);
+      validTo.setHours(23, 59, 59, 999);
       return currentDateObj >= validFrom && currentDateObj <= validTo;
     }).map((ad: any) => ({
       id: `dynamic-ad-${ad.id}`,
       imageUrl: ad.image_url,
       title: 'Sponsored Placement',
+      targetUrl: ad.target_url,
     }));
 
-    const maxContainers = Math.max(1, formattedParagraphs.length - 1); 
+    const maxContainers = Math.min(Math.max(1, formattedParagraphs.length - 1), 6); 
     const chunkArray = (arr: any[], numChunks: number) => {
+      if (arr.length === 0) return [];
+      if (arr.length < numChunks) {
+        return Array.from({ length: numChunks }, (_, i) => [arr[i % arr.length]]);
+      }
       const chunks: any[][] = Array.from({ length: numChunks }, () => []);
       arr.forEach((item, index) => {
         chunks[index % numChunks].push(item);
@@ -323,6 +333,8 @@ export default function SingleArticleView({
                slotId={`AUTO-DYN-${article.id}-${idx}`} 
                wrapperClassName="my-10 flex justify-center w-full" 
                items={adChunks[idx]}
+               globalSettings={globalSettings}
+               placementContext="article"
              />
           );
        }
@@ -339,6 +351,8 @@ export default function SingleArticleView({
                slotId={`AUTO-DYN-REC-${article.id}`} 
                wrapperClassName="my-10 flex justify-center w-full" 
                items={rectangleAdItems}
+               globalSettings={globalSettings}
+               placementContext="article"
              />
           );
        }
@@ -355,6 +369,8 @@ export default function SingleArticleView({
             slotId={`AUTO-DYN-REC-${article.id}-fallback`} 
             wrapperClassName="my-10 flex justify-center w-full" 
             items={rectangleAdItems}
+            globalSettings={globalSettings}
+            placementContext="article"
           />
        );
     }

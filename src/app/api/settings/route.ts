@@ -25,7 +25,8 @@ export async function GET() {
         FROM site_ads a
         JOIN ad_campaigns c ON a.campaign_id = c.id
         WHERE a.active = true 
-        AND CURRENT_TIMESTAMP BETWEEN c.valid_from AND c.valid_to
+        AND CURRENT_TIMESTAMP >= c.valid_from
+        AND CURRENT_TIMESTAMP <= (c.valid_to + INTERVAL '1 day')
         ORDER BY c.valid_from DESC
       `;
     }

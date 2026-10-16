@@ -114,27 +114,40 @@ export default function AdPlacement({
         id: `dynamic-ad-${ad.id}`,
         imageUrl: ad.image_url,
         title: 'Sponsored Placement',
+        targetUrl: ad.target_url || undefined,
       }));
     } else {
-      // Homepage: Extract slot index (0 to 11), assuming 6 total slots per type
+      // Homepage: Extract slot index (0 to 5), assuming 6 total slots per type
       const slotMatch = slotId?.match(/(\d+)$/);
-      const slotIndex = slotMatch ? parseInt(slotMatch[1], 10) - 1 : 0;
+      const slotIndex = slotMatch ? Math.max(0, parseInt(slotMatch[1], 10) - 1) : 0;
       const totalSlots = 6;
       const N = typeAds.length;
 
       if (N > 0) {
-        const base = Math.floor(N / totalSlots);
-        const remainder = N % totalSlots;
-        const countForThisSlot = slotIndex < remainder ? base + 1 : base;
-        const startIndex = slotIndex * base + Math.min(slotIndex, remainder);
-        
-        const assignedAds = typeAds.slice(startIndex, startIndex + countForThisSlot);
-        
-        activeItems = assignedAds.map((ad: any) => ({
-          id: `dynamic-ad-${ad.id}`,
-          imageUrl: ad.image_url,
-          title: 'Sponsored Placement',
-        }));
+        if (N < totalSlots) {
+          // When fewer ads than slots, distribute ads cyclically so slots don't stay empty
+          const ad = typeAds[slotIndex % N];
+          activeItems = [{
+            id: `dynamic-ad-${ad.id}`,
+            imageUrl: ad.image_url,
+            title: 'Sponsored Placement',
+            targetUrl: ad.target_url || undefined,
+          }];
+        } else {
+          const base = Math.floor(N / totalSlots);
+          const remainder = N % totalSlots;
+          const countForThisSlot = slotIndex < remainder ? base + 1 : base;
+          const startIndex = slotIndex * base + Math.min(slotIndex, remainder);
+          
+          const assignedAds = typeAds.slice(startIndex, startIndex + countForThisSlot);
+          
+          activeItems = assignedAds.map((ad: any) => ({
+            id: `dynamic-ad-${ad.id}`,
+            imageUrl: ad.image_url,
+            title: 'Sponsored Placement',
+            targetUrl: ad.target_url || undefined,
+          }));
+        }
       }
     }
   }
@@ -165,9 +178,33 @@ export default function AdPlacement({
 
   const activeItem = activeItems[currentIndex];
 
-
   // ── No active campaign → render nothing at all ──
   if (activeItems.length === 0) return null;
+
+  const mediaNode = activeItem ? (
+    activeItem.imageUrl ? (
+      activeItem.imageUrl.match(/\.(mp4|webm|mov|ogg)$/i) ? (
+        <video 
+          src={activeItem.imageUrl} 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+        />
+      ) : (
+        <img 
+          src={activeItem.imageUrl} 
+          alt={activeItem.title} 
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+        />
+      )
+    ) : (
+      <div className="w-full h-full flex items-center justify-center bg-stone-900 text-white text-xs font-mono">
+        {activeItem.title}
+      </div>
+    )
+  ) : null;
 
   const content = (
     <div 
@@ -180,32 +217,23 @@ export default function AdPlacement({
       >
         {activeItem && (
           <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-brand-black group">
-            {activeItem.imageUrl ? (
-              activeItem.imageUrl.match(/\.(mp4|webm|mov)$/i) ? (
-                <video 
-                  src={activeItem.imageUrl} 
-                  autoPlay 
-                  loop 
-                  muted 
-                  playsInline
-                  className="w-full h-full object-fill transition-transform duration-500 group-hover:scale-[1.02]"
-                />
-              ) : (
-                <img 
-                  src={activeItem.imageUrl} 
-                  alt={activeItem.title} 
-                  className="w-full h-full object-fill transition-transform duration-500 group-hover:scale-[1.02]"
-                />
-              )
+            {activeItem.targetUrl ? (
+              <a 
+                href={activeItem.targetUrl} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-full h-full block cursor-pointer"
+                title={activeItem.title}
+              >
+                {mediaNode}
+              </a>
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-stone-900 text-white text-xs font-mono">
-                {activeItem.title}
-              </div>
+              mediaNode
             )}
 
             {isCarouselRunning && autoPlay && !isPaused && (
               <div 
-                className="absolute bottom-0 left-0 h-0.5 bg-brand-tech z-20 transition-all duration-300"
+                className="absolute bottom-0 left-0 h-0.5 bg-brand-tech z-20 transition-all duration-300 pointer-events-none"
                 style={{ width: `${((currentIndex + 1) / activeItems.length) * 100}%` }}
               />
             )}

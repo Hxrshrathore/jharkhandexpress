@@ -24,16 +24,21 @@ export async function POST(request: Request) {
     const bucketName = process.env.R2_BUCKET_NAME || 'jharkhand-express';
     const publicUrl = process.env.R2_PUBLIC_URL || 'https://cdn.jharkhandexpress.in';
 
-    const fileName = `ads/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+    let fileName = `ads/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
     const bytes = await file.arrayBuffer();
     let buffer = Buffer.from(bytes);
+    let contentType = file.type || 'application/octet-stream';
     
-    // Lightly compress images to ~70% original size/quality, preserving original dimensions
-    if (file.type.startsWith('image/') && !file.type.includes('gif')) {
+    // Lightly compress static raster images to webp at 85% quality, preserving dimensions
+    if (file.type.startsWith('image/') && !file.type.includes('gif') && !file.type.includes('svg')) {
       try {
         buffer = await sharp(buffer)
-          .webp({ quality: 70 })
+          .webp({ quality: 85 })
           .toBuffer();
+        contentType = 'image/webp';
+        if (!fileName.toLowerCase().endsWith('.webp')) {
+          fileName = fileName.replace(/\.[^.]+$/, '') + '.webp';
+        }
       } catch (e) {
         console.error('Sharp compression failed, using original', e);
       }
@@ -43,14 +48,14 @@ export async function POST(request: Request) {
       Bucket: bucketName,
       Key: fileName,
       Body: buffer,
-      ContentType: file.type,
+      ContentType: contentType,
       CacheControl: 'public, max-age=31536000',
     }));
 
     const url = `${publicUrl}/${fileName}`;
     return NextResponse.json({ success: true, url });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Ad Upload Error:', error);
-    return NextResponse.json({ error: 'Failed to upload ad image' }, { status: 500 });
+    return NextResponse.json({ success: false, error: error?.message || 'Failed to upload ad image' }, { status: 500 });
   }
 }

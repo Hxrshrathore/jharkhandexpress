@@ -141,12 +141,13 @@ async function init() {
     CREATE TABLE IF NOT EXISTS site_ads (
       id SERIAL PRIMARY KEY,
       campaign_id INT REFERENCES ad_campaigns(id) ON DELETE CASCADE,
-      slot_id TEXT NOT NULL,
+      slot_id TEXT DEFAULT 'default',
       type TEXT NOT NULL DEFAULT 'rectangle',
       image_url TEXT NOT NULL,
-      target_url TEXT NOT NULL,
+      target_url TEXT DEFAULT '',
       active BOOLEAN DEFAULT true,
       show_in_articles BOOLEAN DEFAULT true,
+      show_on_homepage BOOLEAN DEFAULT true,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     );
   `);
