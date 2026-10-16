@@ -109,13 +109,20 @@ export default function AdPlacement({
   
   if (!items) {
     if (placementContext === 'article') {
-      // For articles, just show all eligible ads in a carousel
-      activeItems = typeAds.map((ad: any) => ({
-        id: `dynamic-ad-${ad.id}`,
-        imageUrl: ad.image_url,
-        title: 'Sponsored Placement',
-        targetUrl: ad.target_url || undefined,
-      }));
+      // In articles, never repeat the same ad across multiple slots.
+      // If a slot ID has an index, allocate only that specific ad.
+      const slotMatch = slotId?.match(/(\d+)$/);
+      const slotIndex = slotMatch ? Math.max(0, parseInt(slotMatch[1], 10) - 1) : 0;
+      if (slotIndex < typeAds.length) {
+        activeItems = [{
+          id: `dynamic-ad-${typeAds[slotIndex].id}`,
+          imageUrl: typeAds[slotIndex].image_url,
+          title: 'Sponsored Placement',
+          targetUrl: typeAds[slotIndex].target_url || undefined,
+        }];
+      } else {
+        activeItems = [];
+      }
     } else {
       // Homepage: Extract slot index (0 to 5), assuming 6 total slots per type
       const slotMatch = slotId?.match(/(\d+)$/);

@@ -219,52 +219,6 @@ export default function SingleArticleView({
 
   // Intelligent Ad & Media Content Renderer
   const renderContentWithMedia = () => {
-    const hasExplicitAds = article.content.includes('<!-- wp:truth/ad-slot');
-    
-    if (hasExplicitAds) {
-      const parts = article.content.split(/(<!-- wp:truth\/ad-slot type=".*?" \/-->)/g);
-      return (
-        <>
-          {parts.map((part, index) => {
-            const adMatch = part.match(/<!-- wp:truth\/ad-slot type="(.*?)" \/-->/);
-            if (adMatch) {
-               const type = adMatch[1] as 'leaderboard' | 'rectangle';
-               return (
-                 <AdPlacement 
-                   key={index} 
-                   type={type} 
-                   slotId={`ARTICLE-${article.id}-${type}-${index}`} 
-                   wrapperClassName="my-10 flex justify-center w-full" 
-                   globalSettings={globalSettings} 
-                   placementContext="article" 
-                 />
-               );
-            }
-            if (part.trim() === '') return null;
-            return <div key={index} dangerouslySetInnerHTML={{ __html: part }} />;
-          })}
-        </>
-      );
-    }
-
-    // Standard Intelligent Auto-Placer
-    let cleanContent = article.content.replace(/<!-- wp:gallery[\s\S]*?<!-- \/wp:gallery -->/g, '');
-    cleanContent = cleanContent.replace(/<!-- wp:video[\s\S]*?<!-- \/wp:video -->/g, '');
-
-    // Strip duplicate Gutenberg & iframe embeds of the hero YouTube video
-    if (heroYtId) {
-      const ytEmbedRegex = new RegExp(`<!-- wp:core-embed/youtube [\\s\\S]*?${heroYtId}[\\s\\S]*?<!-- /wp:core-embed/youtube -->`, 'gi');
-      cleanContent = cleanContent.replace(ytEmbedRegex, '');
-      const ytFigureRegex = new RegExp(`<figure[^>]*class="[^"]*wp-block-embed-youtube[^"]*"[^>]*>[\\s\\S]*?${heroYtId}[\\s\\S]*?</figure>`, 'gi');
-      cleanContent = cleanContent.replace(ytFigureRegex, '');
-    }
-
-    // Strip leftover media placeholder comments
-    cleanContent = cleanContent.replace(/<!-- wp:truth\/media-placeholder[^>]*\/-->/gi, '');
-    
-    const paragraphs = cleanContent.split('</p>').filter(p => p.trim() !== '');
-    const formattedParagraphs = paragraphs.map(p => p.endsWith('</p>') ? p : p + '</p>');
-    
     const allAds = globalSettings?.site_ads || [];
     const currentDateObj = globalSettings?.simulated_date ? new Date(globalSettings.simulated_date) : new Date();
     
@@ -300,12 +254,85 @@ export default function SingleArticleView({
       targetUrl: ad.target_url,
     }));
 
+    const hasExplicitAds = article.content.includes('<!-- wp:truth/ad-slot');
+    
+    if (hasExplicitAds) {
+      let explicitLeaderboardCount = 0;
+      let explicitRectangleCount = 0;
+      const parts = article.content.split(/(<!-- wp:truth\/ad-slot type=".*?" \/-->)/g);
+      return (
+        <>
+          {parts.map((part, index) => {
+            const adMatch = part.match(/<!-- wp:truth\/ad-slot type="(.*?)" \/-->/);
+            if (adMatch) {
+               const type = adMatch[1] as 'leaderboard' | 'rectangle';
+               if (type === 'leaderboard') {
+                 // Each unique leaderboard ad is displayed at most ONCE in the article.
+                 // If there is only 1 ad, only the first slot renders it. Subsequent slots return null!
+                 if (explicitLeaderboardCount < activeArticleAds.length) {
+                   const ad = activeArticleAds[explicitLeaderboardCount++];
+                   return (
+                     <AdPlacement 
+                       key={index} 
+                       type={type} 
+                       slotId={`ARTICLE-${article.id}-${type}-${index}`} 
+                       wrapperClassName="my-10 flex justify-center w-full" 
+                       items={[ad]}
+                       globalSettings={globalSettings} 
+                       placementContext="article" 
+                     />
+                   );
+                 }
+                 return null;
+               } else {
+                 if (explicitRectangleCount < rectangleAdItems.length) {
+                   const ad = rectangleAdItems[explicitRectangleCount++];
+                   return (
+                     <AdPlacement 
+                       key={index} 
+                       type={type} 
+                       slotId={`ARTICLE-${article.id}-${type}-${index}`} 
+                       wrapperClassName="my-10 flex justify-center w-full lg:hidden" 
+                       items={[ad]}
+                       globalSettings={globalSettings} 
+                       placementContext="article" 
+                     />
+                   );
+                 }
+                 return null;
+               }
+            }
+            if (part.trim() === '') return null;
+            return <div key={index} dangerouslySetInnerHTML={{ __html: part }} />;
+          })}
+        </>
+      );
+    }
+
+    // Standard Intelligent Auto-Placer
+    let cleanContent = article.content.replace(/<!-- wp:gallery[\s\S]*?<!-- \/wp:gallery -->/g, '');
+    cleanContent = cleanContent.replace(/<!-- wp:video[\s\S]*?<!-- \/wp:video -->/g, '');
+
+    // Strip duplicate Gutenberg & iframe embeds of the hero YouTube video
+    if (heroYtId) {
+      const ytEmbedRegex = new RegExp(`<!-- wp:core-embed/youtube [\\s\\S]*?${heroYtId}[\\s\\S]*?<!-- /wp:core-embed/youtube -->`, 'gi');
+      cleanContent = cleanContent.replace(ytEmbedRegex, '');
+      const ytFigureRegex = new RegExp(`<figure[^>]*class="[^"]*wp-block-embed-youtube[^"]*"[^>]*>[\\s\\S]*?${heroYtId}[\\s\\S]*?</figure>`, 'gi');
+      cleanContent = cleanContent.replace(ytFigureRegex, '');
+    }
+
+    // Strip leftover media placeholder comments
+    cleanContent = cleanContent.replace(/<!-- wp:truth\/media-placeholder[^>]*\/-->/gi, '');
+    
+    const paragraphs = cleanContent.split('</p>').filter(p => p.trim() !== '');
+    const formattedParagraphs = paragraphs.map(p => p.endsWith('</p>') ? p : p + '</p>');
+
     // In articles: each active leaderboard ad is placed at most ONCE into the article.
     // If there is 1 ad, place it after paragraph 2 (or 1 if short).
     // If there are multiple ads, space them evenly without repeating the same ad.
     const adTargetPositions = new Map<number, any>();
     if (activeArticleAds.length > 0 && formattedParagraphs.length > 1) {
-      const step = Math.max(2, Math.floor(formattedParagraphs.length / (activeArticleAds.length + 1)));
+      const step = Math.max(3, Math.floor(formattedParagraphs.length / (activeArticleAds.length + 1)));
       activeArticleAds.forEach((ad: any, i: number) => {
         let targetIdx = Math.min((i + 1) * step, formattedParagraphs.length - 1);
         if (targetIdx === 1 && mediaItems.length > 0 && formattedParagraphs.length > 2) {

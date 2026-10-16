@@ -585,7 +585,7 @@ export default function ClientHome({
                 {heroArticles.length > 0 ? (
                   <Hero 
                     article={heroArticles[safeHeroIndex]} 
-                    secondaryArticles={displayArticles.filter(a => a.id !== heroArticles[safeHeroIndex]?.id).slice(0, 4)}
+                    secondaryArticles={displayArticles.filter(a => a.id !== heroArticles[safeHeroIndex]?.id).slice(0, 8)}
                     onClick={handleArticleClick}
                     onPrev={(e) => {
                       e.stopPropagation();
