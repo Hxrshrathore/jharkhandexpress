@@ -4,8 +4,8 @@ self.addEventListener('push', function(event) {
       const data = event.data.json();
       const options = {
         body: data.body || 'New article published!',
-        icon: data.icon || '/Truth24x7logo.png',
-        badge: '/Truth24x7logo.png',
+        icon: data.icon || '/favicon-192.png',
+        badge: '/favicon-192.png',
         vibrate: [100, 50, 100],
         data: {
           url: data.url || '/'
@@ -13,7 +13,7 @@ self.addEventListener('push', function(event) {
       };
       
       event.waitUntil(
-        self.registration.showNotification(data.title || 'Truth24x7', options)
+        self.registration.showNotification(data.title || 'Jharkhand Express', options)
       );
     } catch (err) {
       console.error('Error parsing push data', err);

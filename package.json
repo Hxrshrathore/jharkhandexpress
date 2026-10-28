@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "generate-logos": "node scripts/process-logo.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1116.0",

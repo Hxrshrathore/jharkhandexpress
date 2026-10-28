@@ -61,8 +61,16 @@ customHeaders:
       - key: Cache-Control
         value: public, max-age=31536000, immutable
 
-  # Public folder assets - moderate cache
-  - pattern: /Truth24x7logo.png
+  # Public folder brand assets - moderate cache
+  - pattern: /logo*
+    headers:
+      - key: Cache-Control
+        value: public, max-age=86400, stale-while-revalidate=3600
+  - pattern: /favicon*
+    headers:
+      - key: Cache-Control
+        value: public, max-age=86400, stale-while-revalidate=3600
+  - pattern: /apple-touch-icon.png
     headers:
       - key: Cache-Control
         value: public, max-age=86400, stale-while-revalidate=3600
