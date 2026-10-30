@@ -133,7 +133,7 @@ export default function EditCampaignPage({ params }: { params: Promise<{ id: str
 
       if (activeCount > maxDailyAds) {
         maxDailyAds = activeCount;
-        peakDate = currentDay.toLocaleDateString();
+        peakDate = currentDay.toLocaleDateString(undefined, { timeZone: 'UTC' });
       }
     }
 

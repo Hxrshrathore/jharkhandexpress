@@ -122,7 +122,7 @@ export default function NewCampaignPage() {
 
       if (activeCount > maxDailyAds) {
         maxDailyAds = activeCount;
-        peakDate = currentDay.toLocaleDateString();
+        peakDate = currentDay.toLocaleDateString(undefined, { timeZone: 'UTC' });
       }
     }
 

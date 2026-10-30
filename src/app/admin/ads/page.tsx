@@ -20,6 +20,13 @@ interface Campaign {
   ads: { id: number; type: string; image_url: string; active: boolean }[];
 }
 
+const formatCampaignDate = (dateVal: string | Date | undefined) => {
+  if (!dateVal) return '';
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString(undefined, { timeZone: 'UTC' });
+};
+
 export default function ScreenshotAdminPage() {
   const [loading, setLoading] = useState(true);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -100,10 +107,10 @@ export default function ScreenshotAdminPage() {
     }
   };
 
-  const captureScreenshot = async (url: string): Promise<{ url: string | null; dataUrl?: string; width?: number; height?: number }> => {
+  const captureScreenshot = async (url: string, timeoutMs: number = 75000): Promise<{ url: string | null; dataUrl?: string; width?: number; height?: number }> => {
     try {
       // Primary: High-fidelity client-side html-to-image capture with asset waiting
-      const result = await captureDesktopWayback(url);
+      const result = await captureDesktopWayback(url, { timeoutMs });
       let cdnUrl: string | null = null;
       try {
         cdnUrl = await uploadScreenshotToR2(result.blob);
@@ -152,12 +159,17 @@ export default function ScreenshotAdminPage() {
       days.push(new Date(t));
     }
 
-    setBatchProgress({ current: 0, total: days.length, currentDay: '' });
+    setBatchProgress({ current: 0, total: days.length, currentDay: 'Pre-warming Wayback Engine...' });
     
     const newProofs: { date: string, url: string }[] = [];
     const pdf = new jsPDF('p', 'mm', 'a4');
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://truth24x7.com';
     let isFirstPdfPage = true;
+
+    // Pre-warm the wayback routes to ensure Next.js has compiled them before taking timed captures
+    try {
+      await fetch(`${origin}/wayback/2026-10-15T12:00:00?campaign_id=${camp.id}&is_screenshot=1`).catch(() => {});
+    } catch (e) {}
 
     for (let i = 0; i < days.length; i++) {
       const currentDay = days[i];
@@ -166,55 +178,66 @@ export default function ScreenshotAdminPage() {
       const minutes = Math.floor(Math.random() * 60);
       const seconds = Math.floor(Math.random() * 60);
       
-      // Construct local wall-clock string to avoid UTC offset shifting into AM
-      const year = currentDay.getFullYear();
-      const month = String(currentDay.getMonth() + 1).padStart(2, '0');
-      const day = String(currentDay.getDate()).padStart(2, '0');
+      // Construct local wall-clock string using UTC values to avoid timezone shifts
+      const year = currentDay.getUTCFullYear();
+      const month = String(currentDay.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(currentDay.getUTCDate()).padStart(2, '0');
       const hStr = String(hours).padStart(2, '0');
       const mStr = String(minutes).padStart(2, '0');
       const sStr = String(seconds).padStart(2, '0');
 
       const simulatedTimeStr = `${year}-${month}-${day}T${hStr}:${mStr}:${sStr}`;
-      setBatchProgress({ current: i + 1, total: days.length, currentDay: simulatedTimeStr });
+      const humanDisplayDate = `${month}/${day}/${year}, ${hStr}:${mStr}:${sStr}`;
+      setBatchProgress({ current: i + 1, total: days.length, currentDay: humanDisplayDate });
       
       try {
         const baseUrl = `${origin}/wayback/${encodeURIComponent(simulatedTimeStr)}?campaign_id=${camp.id}&is_screenshot=1`;
         
-        // 1. Capture Full-Length Homepage Proof
-        const homeCapture = await captureScreenshot(baseUrl);
-        if (homeCapture.url) {
-          newProofs.push({ date: new Date(simulatedTimeStr).toLocaleString() + ' (Home)', url: homeCapture.url });
-          if (homeCapture.dataUrl && homeCapture.width && homeCapture.height) {
-            await addScaledImageToPdf(
-              pdf,
-              homeCapture.dataUrl,
-              homeCapture.width,
-              homeCapture.height,
-              `Proof: ${new Date(simulatedTimeStr).toLocaleString()} - Homepage`,
-              { fitToSinglePage: !multiPagePdf, isFirstPage: isFirstPdfPage, campaignName: camp.name }
-            );
-            isFirstPdfPage = false;
-          }
+        // 1. Capture Full-Length Homepage Proof (with automatic retry)
+        let homeCapture = await captureScreenshot(baseUrl, 75000);
+        if (!homeCapture.url) {
+          console.warn(`[Proof Engine] Day ${i + 1} (${month}/${day}) initial capture failed, retrying...`);
+          await new Promise(r => setTimeout(r, 2000));
+          homeCapture = await captureScreenshot(baseUrl, 90000);
+        }
+
+        if (homeCapture.url && homeCapture.dataUrl && homeCapture.width && homeCapture.height) {
+          newProofs.push({ date: `${month}/${day}/${year} (Home)`, url: homeCapture.url });
+          await addScaledImageToPdf(
+            pdf,
+            homeCapture.dataUrl,
+            homeCapture.width,
+            homeCapture.height,
+            `Proof: ${month}/${day}/${year} - Homepage`,
+            { fitToSinglePage: !multiPagePdf, isFirstPage: isFirstPdfPage, campaignName: camp.name }
+          );
+          isFirstPdfPage = false;
+        } else {
+          console.error(`[Proof Engine] Day ${i + 1} (${simulatedTimeStr}) failed to capture.`);
         }
 
         // 2. Capture Full-Length Article Proof if campaign shows in articles
         if (camp.ads.some((a: any) => a.show_in_articles)) {
           try {
             const articleWaybackUrl = `${origin}/wayback/${encodeURIComponent(simulatedTimeStr)}/article?campaign_id=${camp.id}&is_screenshot=1`;
-            const articleCapture = await captureScreenshot(articleWaybackUrl);
-            if (articleCapture.url) {
-              newProofs.push({ date: new Date(simulatedTimeStr).toLocaleString() + ' (Article)', url: articleCapture.url });
-              if (articleCapture.dataUrl && articleCapture.width && articleCapture.height) {
-                await addScaledImageToPdf(
-                  pdf,
-                  articleCapture.dataUrl,
-                  articleCapture.width,
-                  articleCapture.height,
-                  `Proof: ${new Date(simulatedTimeStr).toLocaleString()} - Article View`,
-                  { fitToSinglePage: !multiPagePdf, isFirstPage: isFirstPdfPage, campaignName: camp.name }
-                );
-                isFirstPdfPage = false;
-              }
+            let articleCapture = await captureScreenshot(articleWaybackUrl, 75000);
+            if (!articleCapture.url) {
+              console.warn(`[Proof Engine] Day ${i + 1} (${month}/${day}) article capture failed, retrying...`);
+              await new Promise(r => setTimeout(r, 2000));
+              articleCapture = await captureScreenshot(articleWaybackUrl, 90000);
+            }
+
+            if (articleCapture.url && articleCapture.dataUrl && articleCapture.width && articleCapture.height) {
+              newProofs.push({ date: `${month}/${day}/${year} (Article)`, url: articleCapture.url });
+              await addScaledImageToPdf(
+                pdf,
+                articleCapture.dataUrl,
+                articleCapture.width,
+                articleCapture.height,
+                `Proof: ${month}/${day}/${year} - Article View`,
+                { fitToSinglePage: !multiPagePdf, isFirstPage: isFirstPdfPage, campaignName: camp.name }
+              );
+              isFirstPdfPage = false;
             }
           } catch(e) { console.error('Article screenshot failed', e); }
         }
@@ -318,7 +341,7 @@ export default function ScreenshotAdminPage() {
                     </div>
                   </div>
                   <div className="text-[11px] sm:text-xs text-muted-foreground font-mono mb-3 uppercase">
-                    {new Date(camp.valid_from).toLocaleDateString()} — {new Date(camp.valid_to).toLocaleDateString()}
+                    {formatCampaignDate(camp.valid_from)} — {formatCampaignDate(camp.valid_to)}
                   </div>
                   
                   <div className="flex gap-2 mb-3.5">
@@ -366,7 +389,7 @@ export default function ScreenshotAdminPage() {
                 <div className="text-center space-y-1">
                   <p className="text-sm text-muted-foreground font-medium">Currently Simulating:</p>
                   <p className="text-lg font-mono font-bold text-foreground">
-                    {batchProgress.currentDay ? new Date(batchProgress.currentDay).toLocaleString() : 'Initializing...'}
+                    {batchProgress.currentDay || 'Initializing...'}
                   </p>
                 </div>
 
