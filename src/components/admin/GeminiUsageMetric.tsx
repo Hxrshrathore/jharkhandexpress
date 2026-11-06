@@ -35,6 +35,7 @@ interface GeminiMetrics {
   pingResult?: {
     success: boolean;
     latencyMs: number;
+    model?: string;
     error?: string;
   };
 }
@@ -263,7 +264,9 @@ export default function GeminiUsageMetric() {
               {data.pingResult.success ? (
                 <>
                   <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                  <span>Verified live response: {data.pingResult.latencyMs}ms</span>
+                  <span>
+                    Verified live response{data.pingResult.model ? ` (${data.pingResult.model.replace('gemini-', '')})` : ''}: {data.pingResult.latencyMs}ms
+                  </span>
                 </>
               ) : (
                 <>

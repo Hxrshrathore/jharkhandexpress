@@ -11,7 +11,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       authorize: async (credentials) => {
         if (!credentials?.password) return null;
-        if (credentials.password === process.env.ADMIN_PASSWORD) {
+        
+        // Hardened admin authentication: automatically trim whitespace and remove surrounding quotes
+        const rawEnvPassword = process.env.ADMIN_PASSWORD || '';
+        const configuredPassword = rawEnvPassword.trim().replace(/^["']+|["']+$/g, '');
+
+        const inputPassword = typeof credentials.password === 'string'
+          ? credentials.password.trim()
+          : '';
+
+        if (configuredPassword && inputPassword === configuredPassword) {
           return { id: "1", name: "Admin", email: "admin@jharkhandexpress.com" };
         }
         return null;

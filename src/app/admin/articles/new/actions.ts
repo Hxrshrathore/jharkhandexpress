@@ -198,40 +198,44 @@ export async function addFeedItem(prevState: FormState, formData: FormData): Pro
     const pushBroadcast = formData.get('pushBroadcast') === 'true';
     if (pushBroadcast) {
       try {
-        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-        const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
-        const vapidSubject = process.env.VAPID_SUBJECT || 'mailto:admin@jharkhandexpress.com';
+        const rawVapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+        const rawVapidPrivate = process.env.VAPID_PRIVATE_KEY || '';
+        const vapidPublicKey = rawVapidPublic.trim().replace(/^["']+|["']+$/g, '');
+        const vapidPrivateKey = rawVapidPrivate.trim().replace(/^["']+|["']+$/g, '');
+        const vapidSubject = (process.env.VAPID_SUBJECT || 'mailto:admin@jharkhandexpress.com').trim().replace(/^["']+|["']+$/g, '');
 
         if (vapidPublicKey && vapidPrivateKey) {
           webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
           
           const subscribers = await sql`SELECT endpoint, p256dh, auth FROM push_subscriptions`;
           
-          const payload = JSON.stringify({
-            title: title,
-            body: excerpt.substring(0, 100) + '...',
-            icon: featured_image || '/logo.webp',
-            url: `/article/${slug}`
-          });
+          if (subscribers && subscribers.length > 0) {
+            const payload = JSON.stringify({
+              title: title,
+              body: excerpt.substring(0, 100) + '...',
+              icon: featured_image || '/logo.webp',
+              url: `/article/${slug}`
+            });
 
-          // Send to all subscribers asynchronously
-          Promise.allSettled(
-            subscribers.map((sub: any) => 
-              webpush.sendNotification(
-                {
-                  endpoint: sub.endpoint,
-                  keys: {
-                    p256dh: sub.p256dh,
-                    auth: sub.auth
-                  }
-                },
-                payload
+            // Reliable notification dispatch using Promise.allSettled() before server action returns
+            const results = await Promise.allSettled(
+              subscribers.map((sub: any) => 
+                webpush.sendNotification(
+                  {
+                    endpoint: sub.endpoint,
+                    keys: {
+                      p256dh: sub.p256dh,
+                      auth: sub.auth
+                    }
+                  },
+                  payload
+                )
               )
-            )
-          ).then(results => {
+            );
+
             const successful = results.filter(r => r.status === 'fulfilled').length;
             console.log(`Successfully sent push notifications to ${successful}/${subscribers.length} devices.`);
-          });
+          }
         }
       } catch (err) {
         console.error('Failed to broadcast push notification:', err);

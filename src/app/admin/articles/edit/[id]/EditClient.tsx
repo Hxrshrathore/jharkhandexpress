@@ -216,8 +216,27 @@ export default function EditClient({ article }: { article: any }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: rawText, targetParagraphCount })
       });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
+
+      const contentType = res.headers.get('content-type') || '';
+      let data: any;
+
+      if (contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        if (!res.ok) {
+          throw new Error(`Server returned error ${res.status}: ${text.slice(0, 200)}`);
+        }
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error(`Invalid non-JSON response from server (Status ${res.status}): ${text.slice(0, 150)}`);
+        }
+      }
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || `AI processing failed with status ${res.status}`);
+      }
 
       if (data.title) setTitle(data.title);
       if (data.slug) setSlug(data.slug);

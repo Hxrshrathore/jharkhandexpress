@@ -11,11 +11,13 @@ export async function POST(request: Request) {
 
     const { endpoint, keys: { p256dh, auth } } = subscription;
 
-    // Upsert the subscription (insert, or do nothing if endpoint exists)
+    // Upsert the subscription: insert new endpoint, or update keys on conflict to keep credentials current
     await sql`
       INSERT INTO push_subscriptions (endpoint, p256dh, auth)
       VALUES (${endpoint}, ${p256dh}, ${auth})
-      ON CONFLICT (endpoint) DO NOTHING;
+      ON CONFLICT (endpoint) DO UPDATE SET
+        p256dh = EXCLUDED.p256dh,
+        auth = EXCLUDED.auth;
     `;
 
     return NextResponse.json({ success: true });

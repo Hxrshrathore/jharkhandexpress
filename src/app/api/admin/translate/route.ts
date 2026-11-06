@@ -48,21 +48,39 @@ EXCERPT: ${excerpt}
 CONTENT HTML:
 ${content_html}`;
 
-  const startTime = Date.now();
-  const response = await ai.models.generateContent({
-    model: 'gemini-3.5-flash-lite',
-    contents: prompt,
-    config: { responseMimeType: 'application/json' },
-  });
+  const models = [
+    'gemini-3.5-flash-lite',
+    'gemini-3.1-flash-lite',
+    'gemini-3.8-flash',
+    'gemini-2.5-flash',
+  ];
 
-  const latency = Date.now() - startTime;
-  // Non-blocking track
-  import('@/lib/gemini-tracker').then(m => m.recordGeminiCall(latency)).catch(() => {});
+  let lastError: any = null;
+  for (const model of models) {
+    const startTime = Date.now();
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: { responseMimeType: 'application/json' },
+      });
 
-  const text = response.text || '{}';
-  // Strip markdown code fences if present
-  const cleaned = text.replace(/```(?:json)?\s*([\s\S]*?)\s*```/, '$1').trim();
-  return JSON.parse(cleaned.startsWith('{') ? cleaned : '{}');
+      const latency = Date.now() - startTime;
+      import('@/lib/gemini-tracker')
+        .then((m) => m.recordGeminiCall(latency, model))
+        .catch(() => {});
+
+      const text = response.text || '{}';
+      // Strip markdown code fences if present
+      const cleaned = text.replace(/```(?:json)?\s*([\s\S]*?)\s*```/, '$1').trim();
+      return JSON.parse(cleaned.startsWith('{') ? cleaned : '{}');
+    } catch (modelErr: any) {
+      lastError = modelErr;
+      console.warn(`Translation failed on model ${model}, trying next fallback:`, modelErr?.message || modelErr);
+    }
+  }
+
+  throw lastError || new Error('All Gemini translation models failed.');
 }
 
 export async function POST(req: Request) {
@@ -72,7 +90,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!process.env.GEMINI_API_KEY) {
+  const rawKey = process.env.GEMINI_API_KEY || '';
+  const apiKey = rawKey.trim().replace(/^["']+|["']+$/g, '');
+
+  if (!apiKey) {
+    return NextResponse.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
+  }
     return NextResponse.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
   }
 
@@ -87,7 +110,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const ai = new GoogleGenAI({ apiKey });
 
     // Determine which languages to translate into
     const targets: typeof NON_ENGLISH =

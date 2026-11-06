@@ -66,64 +66,152 @@ CRITICAL RULES:
 6. Maintain strict editorial neutrality, journalistic rigor, and relevance to Jharkhand and India.
 `;
 
-    let resultText = '{}';
+    let resultText = '';
+    let successModel = '';
 
-    try {
-      if (!process.env.GEMINI_API_KEY) {
-        throw new Error('GEMINI_API_KEY is not defined. Please restart your Next.js server to load the new environment variables.');
-      }
+    const rawGeminiKey = process.env.GEMINI_API_KEY || '';
+    const geminiApiKey = rawGeminiKey.trim().replace(/^["']+|["']+$/g, '');
 
-      const ai = new GoogleGenAI({
-        apiKey: process.env.GEMINI_API_KEY,
-      });
+    // 1. Sequence of Gemini Models:
+    // Gemini 3.5 Flash Lite → Gemini 3.1 Flash Lite → Gemini 3.8 Flash → Gemini 2.5 Flash
+    if (geminiApiKey) {
+      const geminiModels = [
+        'gemini-3.5-flash-lite',
+        'gemini-3.1-flash-lite',
+        'gemini-3.8-flash',
+        'gemini-2.5-flash',
+      ];
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash-lite",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
+      try {
+        const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+
+        for (const model of geminiModels) {
+          const startTime = Date.now();
+          try {
+            const response = await ai.models.generateContent({
+              model,
+              contents: prompt,
+              config: {
+                responseMimeType: 'application/json',
+              },
+            });
+
+            if (response && response.text) {
+              resultText = response.text;
+              successModel = model;
+              const latency = Date.now() - startTime;
+              import('@/lib/gemini-tracker')
+                .then((m) => m.recordGeminiCall(latency, model))
+                .catch(() => {});
+              break;
+            }
+          } catch (modelErr: any) {
+            console.warn(`Gemini model ${model} failed, attempting next fallback:`, modelErr?.message || modelErr);
+          }
         }
-      });
-
-      resultText = response.text || '{}';
-    } catch (geminiError: any) {
-      console.error('Gemini AI failed, falling back to NVIDIA:', geminiError);
-
-      if (!process.env.NVIDIA_API_KEY) {
-        throw new Error('NVIDIA_API_KEY is not defined. Fallback failed.');
+      } catch (geminiInitErr: any) {
+        console.warn('GoogleGenAI initialization or dispatch failed:', geminiInitErr?.message || geminiInitErr);
       }
-
-      const openai = new OpenAI({
-        baseURL: "https://integrate.api.nvidia.com/v1",
-        apiKey: process.env.NVIDIA_API_KEY,
-      });
-
-      const completion = await openai.chat.completions.create({
-        model: "nvidia/nemotron-3.5-lightning-30b-a3b",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 1,
-        top_p: 0.95,
-        max_tokens: 16384,
-        reasoning_budget: 16384,
-        chat_template_kwargs: { "enable_thinking": true },
-        stream: true
-      } as any);
-
-      let fullContent = '';
-      for await (const chunk of completion as any) {
-        if (!chunk.choices || chunk.choices.length === 0) continue;
-        const reasoning = chunk.choices[0]?.delta?.reasoning_content;
-        const content = chunk.choices[0]?.delta?.content;
-        if (content) {
-          fullContent += content;
-        }
-      }
-
-      resultText = fullContent || '{}';
-      resultText = extractJson(resultText);
     }
 
-    const parsedData = JSON.parse(resultText);
+    // 2. NVIDIA NIM Fallback (Optimised: non-streaming, reduced token limits, stricter system instructions, 28-second client timeout)
+    const rawNvidiaKey = process.env.NVIDIA_API_KEY || '';
+    const nvidiaApiKey = rawNvidiaKey.trim().replace(/^["']+|["']+$/g, '');
+
+    if (!resultText && nvidiaApiKey) {
+      console.warn('Gemini sequence failed or unavailable. Falling back to NVIDIA NIM...');
+      try {
+        const nvidia = new OpenAI({
+          baseURL: 'https://integrate.api.nvidia.com/v1',
+          apiKey: nvidiaApiKey,
+          timeout: 28000, // 28-second client timeout to help prevent Nginx 504 errors
+        });
+
+        const completion = await nvidia.chat.completions.create(
+          {
+            model: 'nvidia/nemotron-3.5-lightning-30b-a3b',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are an expert news editor and SEO specialist. Return ONLY a valid, single JSON object adhering strictly to the requested schema. Do not output markdown, preambles, reasoning blocks, or commentary.',
+              },
+              { role: 'user', content: prompt },
+            ],
+            temperature: 0.7,
+            top_p: 0.9,
+            max_tokens: 4096,
+            stream: false,
+          },
+          { timeout: 28000 }
+        );
+
+        const content = completion.choices?.[0]?.message?.content;
+        if (content) {
+          resultText = extractJson(content);
+          successModel = 'nvidia/nemotron-3.5-lightning-30b-a3b';
+        }
+      } catch (nvidiaErr: any) {
+        console.error('NVIDIA NIM fallback failed:', nvidiaErr?.message || nvidiaErr);
+      }
+    }
+
+    // 3. OpenAI Fallback
+    const rawOpenAiKey = process.env.OPENAI_API_KEY || '';
+    const openAiApiKey = rawOpenAiKey.trim().replace(/^["']+|["']+$/g, '');
+
+    if (!resultText && openAiApiKey) {
+      console.warn('NVIDIA NIM failed or unavailable. Falling back to OpenAI...');
+      try {
+        const openai = new OpenAI({
+          apiKey: openAiApiKey,
+          timeout: 28000,
+        });
+
+        const completion = await openai.chat.completions.create(
+          {
+            model: 'gpt-4o-mini',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are an expert news editor and SEO specialist. Return ONLY a valid JSON object matching the requested schema.',
+              },
+              { role: 'user', content: prompt },
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.7,
+            max_tokens: 4096,
+          },
+          { timeout: 28000 }
+        );
+
+        const content = completion.choices?.[0]?.message?.content;
+        if (content) {
+          resultText = extractJson(content);
+          successModel = 'gpt-4o-mini';
+        }
+      } catch (openAiErr: any) {
+        console.error('OpenAI fallback failed:', openAiErr?.message || openAiErr);
+      }
+    }
+
+    if (!resultText || resultText === '{}') {
+      return NextResponse.json(
+        { error: 'All AI processing providers (Gemini fallback sequence, NVIDIA NIM, OpenAI) failed or timed out.' },
+        { status: 504 }
+      );
+    }
+
+    const cleanedJson = extractJson(resultText);
+    let parsedData: any;
+    try {
+      parsedData = JSON.parse(cleanedJson);
+    } catch (parseError: any) {
+      console.error('Failed to parse AI JSON response:', resultText, parseError);
+      return NextResponse.json(
+        { error: `AI generated non-parseable response: ${parseError.message}` },
+        { status: 502 }
+      );
+    }
 
     return NextResponse.json(parsedData);
   } catch (error: any) {

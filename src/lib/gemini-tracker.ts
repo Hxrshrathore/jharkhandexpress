@@ -90,15 +90,34 @@ export async function fetchGoogleMonitoringMetrics(): Promise<CloudMonitoringInf
   }
 }
 
+let isTableReady = false;
+async function ensureGeminiTable() {
+  if (isTableReady) return;
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS gemini_usage_logs (
+        id SERIAL PRIMARY KEY,
+        latency_ms INTEGER,
+        model VARCHAR(100),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+    isTableReady = true;
+  } catch (err) {
+    console.warn('Could not ensure gemini_usage_logs table:', err);
+  }
+}
+
 /**
  * Call this whenever a Gemini generation or translation occurs to record live usage in PostgreSQL.
  */
-export async function recordGeminiCall(latencyMs?: number) {
+export async function recordGeminiCall(latencyMs?: number, model?: string) {
   try {
+    await ensureGeminiTable();
     const lat = latencyMs ? Math.round(latencyMs) : null;
     await sql`
-      INSERT INTO gemini_usage_logs (latency_ms, created_at)
-      VALUES (${lat}, CURRENT_TIMESTAMP)
+      INSERT INTO gemini_usage_logs (latency_ms, model, created_at)
+      VALUES (${lat}, ${model || 'gemini-3.5-flash-lite'}, CURRENT_TIMESTAMP)
     `;
   } catch (error) {
     // Non-blocking: fail silently if DB write fails
@@ -110,7 +129,9 @@ export async function recordGeminiCall(latencyMs?: number) {
  * Get comprehensive Gemini usage metrics combining Google Cloud Monitoring API and PostgreSQL stats.
  */
 export async function getGeminiUsage(): Promise<GeminiUsageStats> {
-  const isConfigured = Boolean(process.env.GEMINI_API_KEY);
+  const rawKey = process.env.GEMINI_API_KEY || '';
+  const apiKey = rawKey.trim().replace(/^["']+|["']+$/g, '');
+  const isConfigured = Boolean(apiKey);
 
   if (!isConfigured) {
     return {
@@ -135,6 +156,7 @@ export async function getGeminiUsage(): Promise<GeminiUsageStats> {
 
   // 1. Fetch DB metrics
   try {
+    await ensureGeminiTable();
     const [dailyRes, minuteRes, latencyRes, transRes, artRes] = await Promise.allSettled([
       sql`SELECT COUNT(*) as count FROM gemini_usage_logs WHERE created_at >= CURRENT_DATE`,
       sql`SELECT COUNT(*) as count FROM gemini_usage_logs WHERE created_at >= NOW() - INTERVAL '1 minute'`,
@@ -197,32 +219,52 @@ export async function getGeminiUsage(): Promise<GeminiUsageStats> {
 
 /**
  * Ping the Gemini API to verify the API key, calculate real round-trip latency, and record it.
+ * Tests across the Gemini fallback sequence: Gemini 3.5 Flash Lite → Gemini 3.1 Flash Lite → Gemini 3.8 Flash → Gemini 2.5 Flash
  */
-export async function testGeminiConnection(): Promise<{ success: boolean; latencyMs: number; error?: string }> {
-  if (!process.env.GEMINI_API_KEY) {
+export async function testGeminiConnection(): Promise<{ success: boolean; latencyMs: number; model?: string; error?: string }> {
+  const rawKey = process.env.GEMINI_API_KEY || '';
+  const apiKey = rawKey.trim().replace(/^["']+|["']+$/g, '');
+
+  if (!apiKey) {
     return { success: false, latencyMs: 0, error: 'GEMINI_API_KEY is not configured in environment.' };
   }
 
-  const startTime = Date.now();
-  try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash-lite',
-      contents: 'Respond with the word "OK"',
-      config: {
-        maxOutputTokens: 5,
-        temperature: 0.1,
-      },
-    });
+  const models = [
+    'gemini-3.5-flash-lite',
+    'gemini-3.1-flash-lite',
+    'gemini-3.8-flash',
+    'gemini-2.5-flash',
+  ];
 
-    const latencyMs = Date.now() - startTime;
-    if (response.text) {
-      await recordGeminiCall(latencyMs);
-      return { success: true, latencyMs };
+  const ai = new GoogleGenAI({ apiKey });
+
+  let lastError: any = null;
+  for (const model of models) {
+    const startTime = Date.now();
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: 'Respond with the word "OK"',
+        config: {
+          maxOutputTokens: 5,
+          temperature: 0.1,
+        },
+      });
+
+      const latencyMs = Date.now() - startTime;
+      if (response && response.text) {
+        await recordGeminiCall(latencyMs, model);
+        return { success: true, latencyMs, model };
+      }
+    } catch (error: any) {
+      lastError = error;
+      console.warn(`Gemini ping failed on model ${model}:`, error?.message || error);
     }
-    return { success: false, latencyMs, error: 'Empty response received from Gemini.' };
-  } catch (error: any) {
-    const latencyMs = Date.now() - startTime;
-    return { success: false, latencyMs, error: error.message || 'Failed to connect to Gemini API.' };
   }
+
+  return {
+    success: false,
+    latencyMs: 0,
+    error: lastError?.message || 'Failed to connect to any Gemini model.',
+  };
 }
