@@ -96,8 +96,6 @@ export async function POST(req: Request) {
   if (!apiKey) {
     return NextResponse.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
   }
-    return NextResponse.json({ error: 'GEMINI_API_KEY not configured' }, { status: 500 });
-  }
 
   try {
     const body = await req.json();
